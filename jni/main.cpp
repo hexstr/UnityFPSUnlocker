@@ -52,29 +52,29 @@ MonoImage * mono_image_open_from_data_internal (char *data, guint32 data_len, gb
 int inject (long mono_addr) {
 	/*define mono func*/
     //mono_get_root_domain
-    long mono_get_root_domain_addr = mono_addr + 0x16B1CC;
+    long mono_get_root_domain_addr = mono_addr + 0x00;
     //mono_thread_attach
-    long mono_thread_attach_addr = mono_addr + 0x235668;
+    long mono_thread_attach_addr = mono_addr + 0x00;
     //mono_assembly_load_from_full
-    long mono_assembly_load_from_full_addr = mono_addr + 0x134B48;
+    long mono_assembly_load_from_full_addr = mono_addr + 0x00;
     //mono_class_from_name
-    long mono_class_from_name_addr = mono_addr + 0x14D150;
+    long mono_class_from_name_addr = mono_addr + 0x00;
     //mono_object_new
-    long mono_object_new_addr = mono_addr + 0x1F5998;
+    long mono_object_new_addr = mono_addr + 0x00;
     //mono_runtime_object_init
-    long mono_runtime_object_init_addr = mono_addr + 0x1EB670;
+    long mono_runtime_object_init_addr = mono_addr + 0x00;
     //g_malloc
-    g_malloc = (void*(*)(unsigned long))(mono_addr + 0x29DD38);
+    g_malloc = (void*(*)(unsigned long))(mono_addr + 0x00);
     //g_new0
-    g_new0 = (void*(*)(unsigned long))(mono_addr + 0x29DD84);
+    g_new0 = (void*(*)(unsigned long))(mono_addr + 0x00);
     //g_strdup_printf
-    g_strdup_printf = (char*(*)(const char *format, ...))(mono_addr + 0x29E59C);
+    g_strdup_printf = (char*(*)(const char *format, ...))(mono_addr + 0x00);
     //g_strdup
-    g_strdup = (char*(*)(const char *str)) (mono_addr + 0x29DE34);
+    g_strdup = (char*(*)(const char *str)) (mono_addr + 0x00);
     //register_image
-    register_image = (MonoImage*(*)(MonoImage *image))(mono_addr + 0x190778);
+    register_image = (MonoImage*(*)(MonoImage *image))(mono_addr + 0x00);
     //do_mono_image_load
-    do_mono_image_load = (MonoImage*(*)(MonoImage *image, MonoImageOpenStatus *status, gboolean care_about_cli, gboolean care_about_pecoff))(mono_addr + 0x18FF8C);
+    do_mono_image_load = (MonoImage*(*)(MonoImage *image, MonoImageOpenStatus *status, gboolean care_about_cli, gboolean care_about_pecoff))(mono_addr + 0x00);
 
     mono_get_root_domain_t mono_get_root_domain = (mono_get_root_domain_t)(mono_get_root_domain_addr);
     mono_thread_attach_t mono_thread_attach = (mono_thread_attach_t)(mono_thread_attach_addr);
@@ -137,36 +137,19 @@ void nativeForkAndSpecialize(int res, int enable_hook) {
 }
 
 extern "C" {
-    __attribute__((visibility("default")))
-    void nativeForkAndSpecializePre(JNIEnv *env, jclass clazz, jint _uid, jint gid, jintArray gids,
-                                    jint runtime_flags, jobjectArray rlimits, jint mount_external,
-                                    jstring se_info, jstring se_name, jintArray fdsToClose,
-                                    jintArray fdsToIgnore,
-                                    jboolean is_child_zygote, jstring instructionSet,
-                                    jstring appDataDir) {
-        enable_hook = is_app_need_hook(env, appDataDir);
-    }
+	__attribute__((visibility("default")))
+	void nativeForkAndSpecializePre(
+			JNIEnv *env, jclass clazz, jint *_uid, jint *gid, jintArray *gids, jint *runtime_flags,
+			jobjectArray *rlimits, jint *_mount_external, jstring *se_info, jstring *se_name,
+			jintArray *fdsToClose, jintArray *fdsToIgnore, jboolean *is_child_zygote,
+			jstring *instructionSet, jstring *appDataDir, jstring *packageName,
+			jobjectArray *packagesForUID, jstring *sandboxId) {
+		enable_hook = is_app_need_hook(env, *appDataDir);
+	}
 
-    __attribute__((visibility("default")))
-    int nativeForkAndSpecializePost(JNIEnv *env, jclass clazz, jint res) {
-        nativeForkAndSpecialize(res, enable_hook);
-        return !enable_hook;
-    }
-
-    __attribute__((visibility("default")))
-    void nativeForkSystemServerPre(JNIEnv *env, jclass clazz, uid_t uid, gid_t gid, jintArray gids,
-                             jint debug_flags, jobjectArray rlimits, jlong permittedCapabilities,
-                             jlong effectiveCapabilities) {
-    }
-
-    __attribute__((visibility("default")))
-    int nativeForkSystemServerPost(JNIEnv *env, jclass clazz, jint res) {
-        if (res ==  0) {
-            // in system server process
-        } else {
-            // in zygote process, res is child pid
-            // don't print log here, see https://github.com/RikkaApps/Riru/blob/77adfd6a4a6a81bfd20569c910bc4854f2f84f5e/riru-core/jni/main/jni_native_method.cpp#L55-L66
-        }
-        return 0;
-    }
+	__attribute__((visibility("default")))
+	int nativeForkAndSpecializePost(JNIEnv *env, jclass clazz, jint res) {
+		nativeForkAndSpecialize(res, enable_hook);
+		return !enable_hook;
+	}
 }
