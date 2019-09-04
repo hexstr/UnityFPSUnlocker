@@ -8,22 +8,25 @@ UnityEngine.Application.targetFrameRate = 60;
 //把`60`换成`-1`就是不限制帧率
 ```
 然后注入dll调用一下上面这个函数完事儿...  
-模拟器同理(大概可以说Unity游戏同理(il2cpp除外
+模拟器同理(大概可以说Unity游戏同理  
+更新2.0之后换成了il2cpp...这样就更简单了，找到`set_targetFrameRate`的`RVA`直接调用即可
 
 # 使用
 (我也不知道会不会导致封号  
 [点击下载](https://github.com/nishuoshenme/bgoUnlockFPS/releases)
 
 - 国服没有检测`xposed`所以直接做成`xposed模块`了
-- 日服是一个`magisk-riru模块`，需要安装[magisk](https://github.com/topjohnwu/Magisk/releases/)并且在`Magisk Manager`中使用随机包名和`Magisk Hide`隐藏，然后安装[riru-core](https://github.com/RikkaApps/Riru/releases)，最后安装模块即可
-	- 说起来还有一种手动替换的方法，不需要安装这些东西，只需要有`twrp`并且能对`system`分区读写就行
+- 日服现在也没有检测，甚至没加壳(不过之后应该会加上)，虽然可以做成`xposed`模块，但只要包含了`arm64-v8a`动态库就不会复制到`/data/data/packagename/lib`所以我也不知道怎么加载了233
+- ~~日服是一个`magisk-riru模块`，需要安装[magisk](https://github.com/topjohnwu/Magisk/releases/)并且在`Magisk Manager`中使用随机包名和`Magisk Hide`隐藏，然后安装[riru-core](https://github.com/RikkaApps/Riru/releases)，最后安装模块即可~~
 
-    > 首先是`Riru`,下载最新的[releases](https://github.com/RikkaApps/Riru/releases)并解压`/system/lib`文件夹  
+  - ~~说起来还有一种手动替换的方法，不需要安装这些东西，只需要有`twrp`并且能对`system`分区读写就行~~
+
+    > ~~首先是`Riru`,下载最新的[releases](https://github.com/RikkaApps/Riru/releases)并解压`/system/lib`文件夹  
     > 重命名手机中的`/system/lib/libmemtrack.so`为`libmemtrack_real.so`(最好先备份一下`/system/lib/libmemtrack.so`  
     > 从解压的`Riru`文件夹中找到`libmemtrack.so`复制粘贴到手机的`/system/lib`文件夹  
     > 接着解压模块，复制`data`文件夹粘贴到手机对应的文件夹合并  
     > 然后是模块中`/system/lib/libriru_fgounlockfps.so`不用说，复制到手机的对应位置  
     > 最后重启，之后`adb logcat -s Riru:V`一下`Riru`会出现日志  
-    > 总之就是把对应的文件替换正确就行，还不清楚的话去看一下`Riru`的`install.sh`
+    > 总之就是把对应的文件替换正确就行，还不清楚的话去看一下`Riru`的`install.sh`~~
 ***
 以上ᕕ( ᐛ )ᕗ
