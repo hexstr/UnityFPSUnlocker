@@ -29,4 +29,5 @@ UnityEngine.Application.targetFrameRate = 60;
     > 最后重启，之后`adb logcat -s Riru:V`一下`Riru`会出现日志  
     > 总之就是把对应的文件替换正确就行，还不清楚的话去看一下`Riru`的`install.sh`~~
 ***
-以上ᕕ( ᐛ )ᕗ
+以上ᕕ( ᐛ )ᕗ  
+收到台服玩家们的￥100打赏，感谢~
