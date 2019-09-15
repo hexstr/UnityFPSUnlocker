@@ -8,8 +8,7 @@ UnityEngine.Application.targetFrameRate = 60;
 //把`60`换成`-1`就是不限制帧率
 ```
 然后注入dll调用一下上面这个函数完事儿...  
-模拟器同理(大概可以说Unity游戏同理  
-更新2.0之后换成了il2cpp...这样就更简单了，找到`set_targetFrameRate`的`RVA`直接调用即可
+更新2.0之后换成了`il2cpp`这样就更简单了，利用自带api`il2cpp_resolve_icall`直接调用
 
 # 使用
 (我也不知道会不会导致封号  
