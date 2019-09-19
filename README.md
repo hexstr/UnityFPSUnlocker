@@ -15,7 +15,7 @@ UnityEngine.Application.targetFrameRate = 60;
 [点击下载](https://github.com/nishuoshenme/bgoUnlockFPS/releases)
 
 - 国服没有检测`xposed`所以直接做成`xposed模块`了
-- 日服现在也没有检测，甚至没加壳(不过之后应该会加上)，虽然可以做成`xposed`模块，但只要包含了`arm64-v8a`动态库就不会复制到`/data/data/packagename/lib`所以我也不知道怎么加载了233
+- 日服暂时没有检测，直接替换`libil2cpp.so`即可，位于`/data/app/com.aniplex.fategrandorder-1/lib/`下载对应架构的文件替换即可
 - ~~日服是一个`magisk-riru模块`，需要安装[magisk](https://github.com/topjohnwu/Magisk/releases/)并且在`Magisk Manager`中使用随机包名和`Magisk Hide`隐藏，然后安装[riru-core](https://github.com/RikkaApps/Riru/releases)，最后安装模块即可~~
 
   - ~~说起来还有一种手动替换的方法，不需要安装这些东西，只需要有`twrp`并且能对`system`分区读写就行~~
@@ -27,6 +27,11 @@ UnityEngine.Application.targetFrameRate = 60;
     > 然后是模块中`/system/lib/libriru_fgounlockfps.so`不用说，复制到手机的对应位置  
     > 最后重启，之后`adb logcat -s Riru:V`一下`Riru`会出现日志  
     > 总之就是把对应的文件替换正确就行，还不清楚的话去看一下`Riru`的`install.sh`~~
+
+# 最后
+欢迎打赏~  
+![alipay](https://github.com/nishuoshenme/fgoUnlockFPS/raw/master/alipay.png)
+
 ***
 以上ᕕ( ᐛ )ᕗ  
 收到台服玩家们的￥100打赏，感谢~
