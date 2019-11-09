@@ -31,5 +31,5 @@ UnityEngine.Application.targetFrameRate = 60;
 
 ***
 以上ᕕ( ᐛ )ᕗ  
-收到台服玩家们的￥100打赏，感谢~
+收到台服玩家们的￥100打赏，感谢~  
 收到￥100打赏，感谢~

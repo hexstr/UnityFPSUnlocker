@@ -1,16 +1,16 @@
 #include <jni.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <stdio.h>
 #include "riru.h"
 #include "logger.h"
 /*import fake_dlfcn*/
 #include <string.h>
 #include <stdlib.h>
-extern "C" {
 extern void *fake_dlopen(const char *filename, int flags);
 extern void *fake_dlsym(void *handle, const char *symbol);
 extern void fake_dlclose(void *handle);
-}
+
 
 int is_app_need_hook(JNIEnv *, jstring);
 int getPackageName();
@@ -29,10 +29,22 @@ void* thereisnothing(void *args) {
         LOGD("packageName: %s", package_name);
         void* handle = fake_dlopen(package_name, 0);
         if (handle) {
+            /*Read configuration*/
+            int rate = 60;
+            FILE *fp;
+            if ((fp = fopen("/data/local/tmp/unlocker","r")) != NULL)
+            {
+                char chr [4];
+                fgets(chr, 4, fp);
+                LOGD("read cfg: %s", chr);
+                rate = atoi(chr);
+                fclose(fp);
+            }
+            LOGD("rate: %d", rate);
             void* f_set_targetFrameRate = 0;
             void *f_il2cpp_resolve_icall = fake_dlsym(handle, "il2cpp_resolve_icall");
             f_set_targetFrameRate = ((il2cpp_resolve_icall*)f_il2cpp_resolve_icall)("UnityEngine.Application::set_targetFrameRate(System.Int32)");
-            ((set_targetFrameRate*)f_set_targetFrameRate)(60);
+            ((set_targetFrameRate*)f_set_targetFrameRate)(rate);
             LOGD("called set_targetFrameRate");
         } else {
             LOGE("fake dlopen failed");
@@ -45,43 +57,41 @@ void* thereisnothing(void *args) {
     return ((void *)0);
 }
 
-extern "C" {
-    __attribute__((visibility("default")))
-        void nativeForkAndSpecializePre(
-            JNIEnv *env, jclass clazz, jint *_uid, jint *gid, jintArray *gids, jint *runtime_flags,
-            jobjectArray *rlimits, jint *_mount_external, jstring *se_info, jstring *se_name,
-            jintArray *fdsToClose, jintArray *fdsToIgnore, jboolean *is_child_zygote,
-            jstring *instructionSet, jstring *appDataDir, jstring *packageName,
-            jobjectArray *packagesForUID, jstring *sandboxId) {
-        // packageName, packagesForUID, sandboxId exists from Android Q
-        enable_hook = is_app_need_hook(env, *appDataDir);
-    }
-    __attribute__((visibility("default")))
-        int nativeForkAndSpecializePost(JNIEnv *env, jclass clazz, jint res) {
-        if (res == 0 && enable_hook) {
-            int temp;
-            pthread_t ntid;
-            if ((temp = pthread_create(&ntid, NULL, thereisnothing, NULL))) {
-                LOGD("can't create thread");
-            }
+__attribute__((visibility("default")))
+    void nativeForkAndSpecializePre(
+        JNIEnv *env, jclass clazz, jint *_uid, jint *gid, jintArray *gids, jint *runtime_flags,
+        jobjectArray *rlimits, jint *_mount_external, jstring *se_info, jstring *se_name,
+        jintArray *fdsToClose, jintArray *fdsToIgnore, jboolean *is_child_zygote,
+        jstring *instructionSet, jstring *appDataDir, jstring *packageName,
+        jobjectArray *packagesForUID, jstring *sandboxId) {
+    // packageName, packagesForUID, sandboxId exists from Android Q
+    enable_hook = is_app_need_hook(env, *appDataDir);
+}
+__attribute__((visibility("default")))
+    int nativeForkAndSpecializePost(JNIEnv *env, jclass clazz, jint res) {
+    if (res == 0 && enable_hook) {
+        int temp;
+        pthread_t ntid;
+        if ((temp = pthread_create(&ntid, NULL, thereisnothing, NULL))) {
+            LOGD("can't create thread");
         }
-        return !enable_hook;
     }
+    return !enable_hook;
 }
 
 int is_app_need_hook(JNIEnv *env, jstring jAppDataDir) {
     if (jAppDataDir) {
-        const char *appDataDir = env->GetStringUTFChars(jAppDataDir, nullptr);
+        const char *appDataDir = (*env)->GetStringUTFChars(env, jAppDataDir, NULL);
         int user = 0;
         if (sscanf(appDataDir, "/data/%*[^/]/%d/%s", &user, package_name) != 2) {
             if (sscanf(appDataDir, "/data/%*[^/]/%s", package_name) != 1) {
                 package_name[0] = '\0';
-                return false;
+                return 0;
             }
         }
-        env->ReleaseStringUTFChars(jAppDataDir, appDataDir);
+        (*env)->ReleaseStringUTFChars(env, jAppDataDir, appDataDir);
     } else {
-        return false;
+        return 0;
     }
     if (strcmp(package, package_name) == 0)
         return 1;
