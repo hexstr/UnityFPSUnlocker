@@ -14,6 +14,7 @@ UnityEngine.Application.targetFrameRate = 60;
 (~~我也不知道会不会导致~~大概是不会封号  
 [点击下载](https://github.com/nishuoshenme/FGOFPSUnlocker/releases)
 
+- 自定义`FPS`需要先创建`/data/local/tmp/unlocker`文件并填写帧率
 - 国服没有检测`xposed`所以直接做成`xposed模块`了
 - 日服是一个`magisk-riru模块`，需要安装[magisk](https://github.com/topjohnwu/Magisk/releases/)
 - 修改`il2cpp.so`
