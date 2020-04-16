@@ -1,14 +1,9 @@
 #ifndef LOG_TAG
-#define LOG_TAG    "ethereal"
+#define LOG_TAG "ethereal"
 #include <errno.h>
 #include "android/log.h"
-#ifdef DEBUG
 #define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-#else
-#define LOGD(...)
-#define LOGE(...)
-#endif
 #endif
 //mono export func
 enum MonoImageOpenStatus {
@@ -19,13 +14,17 @@ enum MonoImageOpenStatus {
 };
 typedef void* (*mono_get_root_domain_t)();
 typedef void* (*mono_thread_attach_t)(void* mDomain);
-//typedef void* (*mono_image_open_from_data_t) (char *data, uint32_t data_len, int32_t need_copy, MonoImageOpenStatus *status);
+typedef void* (*mono_image_open_from_data_t) (char *data, uint32_t data_len, int32_t need_copy, MonoImageOpenStatus *status);
 typedef void* (*mono_image_open_from_data_with_name_t) (char *data, uint32_t data_len, int32_t need_copy, MonoImageOpenStatus *status, int32_t refonly, const char *name);
 typedef void* (*mono_assembly_load_from_full_t)(void *image, const char *fname, MonoImageOpenStatus *status, int32_t refonly);
 typedef void* (*mono_class_from_name_t)(void* image, const char* name_space, const char* name);
 typedef void* (*mono_object_new_t)(void* mDomain, void* klass);
 typedef void* (*mono_runtime_object_init_t)(void* MonoObject);
 //end
+
+int is_app_need_hook(JNIEnv*, jstring);
+long getLibAddr();
+
 unsigned char header[21] = {
 	0x7F, 0x45, 0x4C, 0x46, 0x01, 0x01, 0x42, 0x79, 0x45, 0x74, 0x68, 0x65,
 	0x72, 0x65, 0x61, 0x6C, 0x03, 0x00, 0x28, 0x00, 0x01
