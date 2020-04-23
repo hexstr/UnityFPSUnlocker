@@ -8,7 +8,7 @@ UnityEngine.Application.targetFrameRate = 60;
 //把`60`换成`-1`就是不限制帧率
 ```
 利用自带api`il2cpp_resolve_icall`直接调用  
-国服直接修改`/data/data/com.bilibili.fatego/shared_prefs/com.bilibili.fatego.v2.playerprefs.xml`加上一行`<int name="OptionHighFPS" value="1" />`即可(所以说日服啥时候安排一下啊)
+国服直接修改`/data/data/com.bilibili.fatego/shared_prefs/com.bilibili.fatego.v2.playerprefs.xml`加上一行`<int name="OptionHighFPS" value="1" />`或者使用已经修改过的`libunity.so`
 
 # 使用
 (~~我也不知道会不会导致~~大概是不会封号  
