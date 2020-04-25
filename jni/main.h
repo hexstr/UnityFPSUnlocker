@@ -14,7 +14,6 @@ enum MonoImageOpenStatus {
 };
 typedef void* (*mono_get_root_domain_t)();
 typedef void* (*mono_thread_attach_t)(void* mDomain);
-typedef void* (*mono_image_open_from_data_t) (char *data, uint32_t data_len, int32_t need_copy, MonoImageOpenStatus *status);
 typedef void* (*mono_image_open_from_data_with_name_t) (char *data, uint32_t data_len, int32_t need_copy, MonoImageOpenStatus *status, int32_t refonly, const char *name);
 typedef void* (*mono_assembly_load_from_full_t)(void *image, const char *fname, MonoImageOpenStatus *status, int32_t refonly);
 typedef void* (*mono_class_from_name_t)(void* image, const char* name_space, const char* name);
