@@ -1,4 +1,5 @@
 # 修改二进制文件
+## armeabi
 使用`ida pro`打开`libunity.so`，等待分析结束后按下`shift + F12`打开字符串列表，`ctrl + F`搜索
 ```
 set_targetFrame
@@ -35,5 +36,22 @@ FF FF FF FF 00 00 00 00 00 00 00 00 80 43 CE 00
 3C 00 00 00 00 00 00 00 00 00 00 00 80 43 CE 00
 ```
 最后，点击`Edit->Patch program->Apply patches to input file...`并确定，即可。
+## arm64-v8a
+第一步搜索之后，按`x`查看引用，双击第一个
+![step1](https://github.com/nishuoshenme/FGOFPSUnlocker/raw/patchfile/imgs/a.jpg)
+
+然后是几次`B`跳转，还是把前两个指令修改为`NOP`
+```
+68 58 00 90 00 BD 0C B9 C0 03 5F D6 A8 59 00 D0
+```
+改为
+```
+1F 20 03 D5 1F 20 03 D5 C0 03 5F D6 A8 59 00 D0
+```
+![step2](https://github.com/nishuoshenme/FGOFPSUnlocker/raw/patchfile/imgs/b.jpg)
+
+然后双击上方`dword_F08CBC`修改即可
+![stepc](https://github.com/nishuoshenme/FGOFPSUnlocker/raw/patchfile/imgs/c.jpg)
+
 ***
 以上ᕕ( ᐛ )ᕗ
