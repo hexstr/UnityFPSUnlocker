@@ -3,7 +3,7 @@
 - [riru-core](https://github.com/RikkaApps/Riru/releases)
 
 ## 使用
-下载、刷入模块并重启后，在`/data/adb/modules/riru-UnityFPSUnlocker/TargetList.json`中修改你的配置。
+下载并刷入模块。在重启之前，先下载`TargetList.json`放入`/data/local/tmp/TargetList.json`，并修改你的配置。
 
 - `framerate` 需要设置的`fps`
 - `delay` 游戏载入后等待`delay`秒执行解锁
