@@ -9,4 +9,5 @@
 - `delay` 游戏载入后等待`delay`秒执行解锁
 - `packages` 游戏包名
 
-`TargetList.json`修改后可以搜索`json 格式校验`校验是否完整。每次修改都需要重启设备。
+`TargetList.json`修改后可以搜索`json 格式校验`校验是否完整。每次修改都需要重启设备。  
+可以在终端模拟器输入`logcat -s UnityFPSUnlocker:V`查看输入日志。
