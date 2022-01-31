@@ -1,6 +1,7 @@
 # UnityFPSUnlocker
 ## 安装需求
-- [riru-core](https://github.com/RikkaApps/Riru/releases)
+- [Magisk](https://github.com/topjohnwu/Magisk/releases)
+- 启用`zygisk`
 
 ## 使用
 下载并刷入模块。在重启之前，先下载`TargetList.json`放入`/data/local/tmp/TargetList.json`，并修改你的配置。
