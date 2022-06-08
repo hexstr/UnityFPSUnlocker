@@ -8,6 +8,7 @@
 
 - `framerate` 需要设置的`fps`
 - `delay [second, > 5 recommended]` 游戏载入后等待`delay`秒执行解锁
+- `modify_opcode [true|false]` 是否修改`opcoed`，如果游戏会重新锁定FPS，可以启用这个选项，但由于修改内存，可能会被检测到
 - `packages` 游戏包名
 
 `TargetList.json`修改后可以搜索`json 格式校验`校验是否完整。每次修改都需要重启设备。  
