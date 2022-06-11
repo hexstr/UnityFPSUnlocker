@@ -1,0 +1,8 @@
+.vs*
+build
+libs
+riru_module
+zygisk_module
+*.cmd
+*.zip
+*.json
