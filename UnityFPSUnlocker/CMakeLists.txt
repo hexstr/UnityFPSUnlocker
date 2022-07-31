@@ -20,7 +20,7 @@ if(CMAKE_BUILD_TYPE_UP STREQUAL DEBUG)
     set(LINK_FLAGS "-g")
 else()
     message(STATUS "Release Version")
-    set(LINK_FLAGS "-s")
+    set(LINK_FLAGS "-s -Wl,--exclude-libs,ALL")
 endif()
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINK_FLAGS}")
@@ -43,12 +43,16 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/libs/${ANDROID_ABI})
 aux_source_directory(${PROJECT_SOURCE_DIR}/${LibraryName} program-src)
 aux_source_directory(utility utility-src)
 aux_source_directory(third/xdl xdl-src)
+aux_source_directory(file_watch listener-src)
+aux_source_directory(file_watch/dispatcher dispatcher-src)
 
 add_library (
     ${LibraryName}
     SHARED
     ${program-src}
     ${utility-src}
+    ${listener-src}
+    ${dispatcher-src}
     ${xdl-src}
 )
 

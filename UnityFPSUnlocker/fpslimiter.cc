@@ -27,7 +27,7 @@
              1 | 4);
 
 namespace FPSLimiter {
-    static std::string il2cpp_resolve_icall_name{ "il2cpp_resolve_icall" };
+    static const char* il2cpp_resolve_icall_name{ "il2cpp_resolve_icall" };
     using il2cpp_resolve_icall_f = void* (*)(const char*);
     using set_targetFrameRate_f = void (*)(int);
     static il2cpp_resolve_icall_f il2cpp_resolve_icall = nullptr;
@@ -35,12 +35,12 @@ namespace FPSLimiter {
 
     void Start(int delay, int framerate, bool modify_opcode) {
         logger("***** new thread *****");
-        logger("delay: %d | framerate: %d", delay, framerate);
+        logger("delay: %d | framerate: %d | modify_opcode: %d", delay, framerate, modify_opcode);
         sleep(delay);
         logger("***** begin *****");
         void* handle = xdl_open("libil2cpp.so", 0);
         if (handle) {
-            il2cpp_resolve_icall = (il2cpp_resolve_icall_f)xdl_sym(handle, il2cpp_resolve_icall_name.c_str(), nullptr);
+            il2cpp_resolve_icall = (il2cpp_resolve_icall_f)xdl_sym(handle, il2cpp_resolve_icall_name, nullptr);
             if (!il2cpp_resolve_icall) {
                 goto FAILED;
             }
