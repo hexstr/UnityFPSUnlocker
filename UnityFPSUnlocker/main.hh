@@ -3,6 +3,8 @@
 
 #include "third/zygisk.hh"
 
+#include "logger.hh"
+
 using zygisk::Api;
 using zygisk::AppSpecializeArgs;
 
@@ -21,6 +23,24 @@ private:
     bool modify_opcode_ = false;
 
     void preSpecialize(const char* process);
+};
+
+class ConfigValue {
+public:
+    int delay = 7;
+    int fps = 77;
+    bool mod_opcode = false;
+
+    ConfigValue(){};
+    ConfigValue(const ConfigValue& lhs) {
+        delay = lhs.delay;
+        fps = lhs.fps;
+        mod_opcode = lhs.mod_opcode;
+    }
+
+    void DebugPrint() {
+        logger("\tdelay: %d | fps: %d | mod_opcode: %d", delay, fps, mod_opcode);
+    }
 };
 
 #endif // main.hh

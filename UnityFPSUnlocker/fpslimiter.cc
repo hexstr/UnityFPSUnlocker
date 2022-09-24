@@ -34,7 +34,15 @@ namespace FPSLimiter {
     static set_targetFrameRate_f set_targetFrameRate = nullptr;
 
     void Start(int delay, int framerate, bool modify_opcode) {
-        logger("***** new thread *****");
+#ifdef __aarch64__
+        logger("[UnityFPSUnlocker][arm64] Starting...");
+#elif defined(__ARM_ARCH_7A__)
+        logger("[UnityFPSUnlocker][armv7] Starting...");
+#elif defined(__i386__)
+        logger("[UnityFPSUnlocker][x86] Starting...");
+#elif defined(__x86_64__)
+        logger("[UnityFPSUnlocker][x86_64] Starting...");
+#endif
         logger("delay: %d | framerate: %d | modify_opcode: %d", delay, framerate, modify_opcode);
         sleep(delay);
         logger("***** begin *****");

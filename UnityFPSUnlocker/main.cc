@@ -7,7 +7,7 @@
 
 #include <thread>
 
-#include <absl/container/flat_hash_set.h>
+#include <absl/container/flat_hash_map.h>
 #include <absl/status/statusor.h>
 
 #include "config.hh"
@@ -20,41 +20,54 @@
 using namespace rapidjson;
 
 static bool is_loaded = false;
-static int frame_rate = 60;
-static int delay = 30;
 static int watch_descriptor = -1;
-static absl::flat_hash_set<std::string> normal_list;
-static absl::flat_hash_set<std::string> mod_list;
+static absl::flat_hash_map<std::string, ConfigValue> custom_list;
+static ConfigValue global_cfg;
 
 void LoadConfig() {
-    frame_rate = 60;
-    delay = 30;
-    normal_list.clear();
-    mod_list.clear();
+    custom_list.clear();
 
     auto read_path = Utility::LoadJsonFromFile("/data/local/tmp/TargetList.json");
     if (!read_path.ok()) {
         return;
     }
+
     Document& doc = *read_path;
-    if (auto itor = doc.FindMember("normal_list"); itor != doc.MemberEnd() && itor->value.IsArray()) {
-        for (const auto& package : itor->value.GetArray()) {
-            normal_list.emplace(package.GetString());
+    if (auto itor = doc.FindMember("global"); itor != doc.MemberEnd() && itor->value.IsObject()) {
+        if (auto itor2 = itor->value.FindMember("delay"); itor2 != doc.MemberEnd() && itor2->value.IsInt()) {
+            global_cfg.delay = itor2->value.GetInt();
         }
-    }
-    if (auto itor = doc.FindMember("mod_list"); itor != doc.MemberEnd() && itor->value.IsArray()) {
-        for (const auto& package : itor->value.GetArray()) {
-            mod_list.emplace(package.GetString());
+        if (auto itor2 = itor->value.FindMember("fps"); itor2 != doc.MemberEnd() && itor2->value.IsInt()) {
+            global_cfg.fps = itor2->value.GetInt();
         }
-    }
-    if (auto itor = doc.FindMember("framerate"); itor != doc.MemberEnd() && itor->value.IsInt()) {
-        frame_rate = itor->value.GetInt();
-    }
-    if (auto itor = doc.FindMember("delay"); itor != doc.MemberEnd() && itor->value.IsInt()) {
-        delay = itor->value.GetInt();
+        if (auto itor2 = itor->value.FindMember("mod_opcode"); itor2 != doc.MemberEnd() && itor2->value.IsBool()) {
+            global_cfg.mod_opcode = itor2->value.GetBool();
+        }
     }
 
-    logger("[LoadConfig] normal_list: %zu, mod_list: %zu frame_rate: %d delay: %d", normal_list.size(), mod_list.size(), frame_rate, delay);
+    if (auto itor = doc.FindMember("custom"); itor != doc.MemberEnd() && itor->value.IsObject()) {
+        for (auto&& item : itor->value.GetObject()) {
+            if (item.value.IsObject()) {
+                auto cfg(global_cfg);
+                if (item.value.MemberCount()) {
+                    if (auto itor2 = item.value.FindMember("delay"); itor2 != item.value.MemberEnd() && itor2->value.IsInt()) {
+                        cfg.delay = itor2->value.GetInt();
+                    }
+                    if (auto itor2 = item.value.FindMember("fps"); itor2 != item.value.MemberEnd() && itor2->value.IsInt()) {
+                        cfg.fps = itor2->value.GetInt();
+                    }
+                    if (auto itor2 = item.value.FindMember("mod_opcode"); itor2 != item.value.MemberEnd() && itor2->value.IsBool()) {
+                        cfg.mod_opcode = itor2->value.GetBool();
+                    }
+                }
+                custom_list[item.name.GetString()] = cfg;
+            }
+        }
+    }
+
+    logger("[LoadConfig] custom_list: %zu", custom_list.size());
+    logger("[LoadConfig] global_cfg: ");
+    global_cfg.DebugPrint();
 }
 
 void OnModified(int wd) {
@@ -67,7 +80,15 @@ void OnModified(int wd) {
 void CompanionEntry(int s) {
     std::string package_name = read_string(s);
     if (is_loaded == false) {
-        logger("[UnityFPSUnlocker]initializing...");
+#ifdef __aarch64__
+        logger("[UnityFPSUnlocker][arm64] Initializing...");
+#elif defined(__ARM_ARCH_7A__)
+        logger("[UnityFPSUnlocker][armv7] Initializing...");
+#elif defined(__i386__)
+        logger("[UnityFPSUnlocker][x86] Initializing...");
+#elif defined(__x86_64__)
+        logger("[UnityFPSUnlocker][x86_64] Initializing...");
+#endif
         LoadConfig();
         EPoller* file_watch_poller = new EPoller(new FileWatch::Listener());
         EPoller::reserved_list_.push_back(file_watch_poller);
@@ -80,16 +101,11 @@ void CompanionEntry(int s) {
         is_loaded = true;
     }
 
-    if (normal_list.contains(package_name)) {
+    if (auto itor = custom_list.find(package_name); itor != custom_list.end()) {
         write_int(s, 1);
-        write_int(s, delay);
-        write_int(s, frame_rate);
-        write_int(s, false);
-    } else if (mod_list.contains(package_name)) {
-        write_int(s, 1);
-        write_int(s, delay);
-        write_int(s, frame_rate);
-        write_int(s, true);
+        write_int(s, itor->second.delay);
+        write_int(s, itor->second.fps);
+        write_int(s, itor->second.mod_opcode);
     } else {
         write_int(s, 0); // is_target : false
     }
