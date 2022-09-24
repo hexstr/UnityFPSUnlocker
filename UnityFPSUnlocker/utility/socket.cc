@@ -10,7 +10,7 @@ using namespace std;
 ssize_t xsendmsg(int sockfd, const struct msghdr* msg, int flags) {
     int sent = sendmsg(sockfd, msg, flags);
     if (sent < 0) {
-        logger("xsendmsg error: %s", strerror(errno));
+        LOG("xsendmsg error: %s", strerror(errno));
     }
     return sent;
 }
@@ -18,7 +18,7 @@ ssize_t xsendmsg(int sockfd, const struct msghdr* msg, int flags) {
 ssize_t xrecvmsg(int sockfd, struct msghdr* msg, int flags) {
     int rec = recvmsg(sockfd, msg, flags);
     if (rec < 0) {
-        logger("xrecvmsg error: %s", strerror(errno));
+        LOG("xrecvmsg error: %s", strerror(errno));
     }
     return rec;
 }
@@ -31,13 +31,13 @@ ssize_t xxread(int fd, void* buf, size_t count) {
         if (ret < 0) {
             if (errno == EINTR)
                 continue;
-            logger("xxread error: %s", strerror(errno));
+            LOG("xxread error: %s", strerror(errno));
             return ret;
         }
         read_sz += ret;
     } while (read_sz != count && ret != 0);
     if (read_sz != count) {
-        logger("xxread (%zu != %zu)", count, read_sz);
+        LOG("xxread (%zu != %zu)", count, read_sz);
     }
     return read_sz;
 }
@@ -50,13 +50,13 @@ ssize_t xwrite(int fd, const void* buf, size_t count) {
         if (ret < 0) {
             if (errno == EINTR)
                 continue;
-            logger("xwrite error: %s", strerror(errno));
+            LOG("xwrite error: %s", strerror(errno));
             return ret;
         }
         write_sz += ret;
     } while (write_sz != count && ret != 0);
     if (write_sz != count) {
-        logger("xwrite (%zu != %zu)", count, write_sz);
+        LOG("xwrite (%zu != %zu)", count, write_sz);
     }
     return write_sz;
 }

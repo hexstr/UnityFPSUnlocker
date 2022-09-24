@@ -20,12 +20,12 @@ namespace Utility {
                     content[doc.GetErrorOffset() - 2] = '-';
                     content[doc.GetErrorOffset() - 1] = '>';
                 }
-                logger("[%s] %s #%d\nFile: %s %s %zu %s", __FUNCTION__, __FILE__, __LINE__,
+                LOG("[%s] %s #%d\nFile: %s %s %zu %s", __FUNCTION__, __FILE__, __LINE__,
                        FilePath, GetParseError_En(doc.GetParseError()), doc.GetErrorOffset(), content.c_str());
                 return absl::InternalError("Parse error");
             }
         } else {
-            logger("[%s] %s #%d\nCould not read file: %s.", __FUNCTION__, __FILE__, __LINE__, FilePath);
+            LOG("[%s] %s #%d\nCould not read file: %s.", __FUNCTION__, __FILE__, __LINE__, FilePath);
             return absl::InternalError("Could not read file.");
         }
         return doc;

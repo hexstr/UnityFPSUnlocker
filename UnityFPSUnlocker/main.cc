@@ -1,5 +1,6 @@
 #include "main.hh"
 
+#include <cstring>
 #include <dlfcn.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -65,8 +66,8 @@ void LoadConfig() {
         }
     }
 
-    logger("[LoadConfig] custom_list: %zu", custom_list.size());
-    logger("[LoadConfig] global_cfg: ");
+    LOG("[LoadConfig] custom_list: %zu", custom_list.size());
+    LOG("[LoadConfig] global_cfg: ");
     global_cfg.DebugPrint();
 }
 
@@ -81,13 +82,13 @@ void CompanionEntry(int s) {
     std::string package_name = read_string(s);
     if (is_loaded == false) {
 #ifdef __aarch64__
-        logger("[UnityFPSUnlocker][arm64] Initializing...");
+        LOG("[UnityFPSUnlocker][arm64] Initializing...");
 #elif defined(__ARM_ARCH_7A__)
-        logger("[UnityFPSUnlocker][armv7] Initializing...");
+        LOG("[UnityFPSUnlocker][armv7] Initializing...");
 #elif defined(__i386__)
-        logger("[UnityFPSUnlocker][x86] Initializing...");
+        LOG("[UnityFPSUnlocker][x86] Initializing...");
 #elif defined(__x86_64__)
-        logger("[UnityFPSUnlocker][x86_64] Initializing...");
+        LOG("[UnityFPSUnlocker][x86_64] Initializing...");
 #endif
         LoadConfig();
         EPoller* file_watch_poller = new EPoller(new FileWatch::Listener());
@@ -107,7 +108,10 @@ void CompanionEntry(int s) {
         write_int(s, itor->second.fps);
         write_int(s, itor->second.mod_opcode);
     } else {
-        write_int(s, 0); // is_target : false
+        write_int(s, 0);
+        write_int(s, global_cfg.delay);
+        write_int(s, global_cfg.fps);
+        write_int(s, global_cfg.mod_opcode);
     }
 }
 
@@ -120,29 +124,29 @@ void MyModule::onLoad(Api* api, JNIEnv* env) {
 }
 
 void MyModule::preAppSpecialize(AppSpecializeArgs* args) {
-    const char* process = env->GetStringUTFChars(args->nice_name, nullptr);
-    preSpecialize(process);
-    env->ReleaseStringUTFChars(args->nice_name, process);
+    package_name_ = env->GetStringUTFChars(args->nice_name, nullptr);
+    preSpecialize(package_name_);
 }
 
 void MyModule::postAppSpecialize(const AppSpecializeArgs* args) {
-    if (is_target_) {
+    char buffer[512];
+    std::sprintf(buffer, "/sdcard/Android/data/%s/files/il2cpp", package_name_);
+    if (has_custom_cfg_ || access(buffer, F_OK) == 0) {
         std::thread([=]() {
             FPSLimiter::Start(delay_, framerate_, modify_opcode_);
         }).detach();
     }
+    env->ReleaseStringUTFChars(args->nice_name, package_name_);
 }
 
 void MyModule::preSpecialize(const char* process) {
     int client_socket = api->connectCompanion();
     write_string(client_socket, process);
-    is_target_ = read_int(client_socket); // is_target
 
-    if (is_target_ == 1) {
-        delay_ = read_int(client_socket);
-        framerate_ = read_int(client_socket);
-        modify_opcode_ = read_int(client_socket);
-    }
+    has_custom_cfg_ = read_int(client_socket);
+    delay_ = read_int(client_socket);
+    framerate_ = read_int(client_socket);
+    modify_opcode_ = read_int(client_socket);
 
     close(client_socket);
 }

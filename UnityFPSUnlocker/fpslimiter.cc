@@ -35,17 +35,17 @@ namespace FPSLimiter {
 
     void Start(int delay, int framerate, bool modify_opcode) {
 #ifdef __aarch64__
-        logger("[UnityFPSUnlocker][arm64] Starting...");
+        LOG("[UnityFPSUnlocker][arm64] Starting...");
 #elif defined(__ARM_ARCH_7A__)
-        logger("[UnityFPSUnlocker][armv7] Starting...");
+        LOG("[UnityFPSUnlocker][armv7] Starting...");
 #elif defined(__i386__)
-        logger("[UnityFPSUnlocker][x86] Starting...");
+        LOG("[UnityFPSUnlocker][x86] Starting...");
 #elif defined(__x86_64__)
-        logger("[UnityFPSUnlocker][x86_64] Starting...");
+        LOG("[UnityFPSUnlocker][x86_64] Starting...");
 #endif
-        logger("delay: %d | framerate: %d | modify_opcode: %d", delay, framerate, modify_opcode);
+        LOG("delay: %d | framerate: %d | modify_opcode: %d", delay, framerate, modify_opcode);
         sleep(delay);
-        logger("***** begin *****");
+        LOG("***** begin *****");
         void* handle = xdl_open("libil2cpp.so", 0);
         if (handle) {
             il2cpp_resolve_icall = (il2cpp_resolve_icall_f)xdl_sym(handle, il2cpp_resolve_icall_name, nullptr);
@@ -61,7 +61,7 @@ namespace FPSLimiter {
                     unsigned char* ptr = (unsigned char*)set_targetFrameRate;
                     int code = __make_rwx(ptr, 4);
                     if (code) {
-                        logger("Change permission failed, %d %s", code, strerror(errno));
+                        LOG("Change permission failed, %d %s", code, strerror(errno));
                         goto FAILED;
                     }
 #ifdef __aarch64__
@@ -77,17 +77,17 @@ namespace FPSLimiter {
 #endif
                     code = __make_rx(ptr, 4);
                     if (code) {
-                        logger("Change permission failed, %d %s", code, strerror(errno));
+                        LOG("Change permission failed, %d %s", code, strerror(errno));
                         goto FAILED;
                     }
                 }
 
-                logger("set_targetFrameRate: %d", framerate);
-                logger("***** finished *****");
+                LOG("set_targetFrameRate: %d", framerate);
+                LOG("***** finished *****");
                 return;
             }
         }
     FAILED:
-        logger("Failed, not support this game.");
+        LOG("Failed, not support this game.");
     }
 } // namespace FPSLimiter

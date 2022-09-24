@@ -17,10 +17,11 @@ public:
 private:
     Api* api;
     JNIEnv* env;
-    int is_target_ = false;
+    int has_custom_cfg_ = false;
     int delay_ = 5;
     int framerate_ = 60;
     bool modify_opcode_ = false;
+    const char* package_name_ = nullptr;
 
     void preSpecialize(const char* process);
 };
@@ -39,7 +40,7 @@ public:
     }
 
     void DebugPrint() {
-        logger("\tdelay: %d | fps: %d | mod_opcode: %d", delay, fps, mod_opcode);
+        LOG("\tdelay: %d | fps: %d | mod_opcode: %d", delay, fps, mod_opcode);
     }
 };
 
