@@ -15,3 +15,5 @@
 可以在终端模拟器输入`logcat -s UnityFPSUnlocker:V`查看输入日志。
 
 `2.0`为了支持单独游戏单独配置，格式有变化。
+
+`3.0`通过判断是否存在`/sdcard/Android/data/{package_name}/files/il2cpp`来自动加载。
