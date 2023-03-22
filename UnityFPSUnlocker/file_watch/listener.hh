@@ -17,11 +17,11 @@ namespace FileWatch {
         virtual void OnClose(uintptr_t) override final{};
 
         using OnModified = void (*)(int wd);
-        static int Register(const char* file_path, OnModified callback);
+        int Register(const char* file_path, OnModified callback);
 
     private:
-        static int inotify_fd_;
-        static absl::flat_hash_map<int, OnModified> registered_;
+        int inotify_fd_;
+        absl::flat_hash_map<int, OnModified> registered_;
     };
 } // namespace FileWatch
 

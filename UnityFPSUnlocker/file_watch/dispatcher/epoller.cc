@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "epoller.hh"
-#include "logger.hh"
+#include "utility/logger.hh"
 
 std::vector<IPoller*> EPoller::reserved_list_;
 
@@ -44,7 +44,8 @@ absl::Status EPoller::ModSocket(intptr_t s, long eventflags) {
 absl::Status EPoller::RemoveSocket(intptr_t s) {
     if (epoll_ctl(epoller_inst_, EPOLL_CTL_DEL, s, nullptr) == -1) {
         return absl::InternalError(strerror(errno));
-    } else {
+    }
+    else {
         return absl::OkStatus();
     }
 }

@@ -3,7 +3,7 @@
 
 #include "third/zygisk.hh"
 
-#include "logger.hh"
+#include "utility/logger.hh"
 
 using zygisk::Api;
 using zygisk::AppSpecializeArgs;
@@ -28,19 +28,20 @@ private:
 
 class ConfigValue {
 public:
-    int delay = 7;
-    int fps = 77;
-    bool mod_opcode = false;
+    int delay_ = 7;
+    int fps_ = 77;
+    bool mod_opcode_ = false;
 
     ConfigValue(){};
+    ConfigValue(int delay, int fps, bool mod_opcode) : delay_(delay), fps_(fps), mod_opcode_(mod_opcode){};
     ConfigValue(const ConfigValue& lhs) {
-        delay = lhs.delay;
-        fps = lhs.fps;
-        mod_opcode = lhs.mod_opcode;
+        delay_ = lhs.delay_;
+        fps_ = lhs.fps_;
+        mod_opcode_ = lhs.mod_opcode_;
     }
 
     void DebugPrint() {
-        LOG("\tdelay: %d | fps: %d | mod_opcode: %d", delay, fps, mod_opcode);
+        LOG("\tdelay: %d | fps: %d | mod_opcode: %d", delay_, fps_, mod_opcode_);
     }
 };
 

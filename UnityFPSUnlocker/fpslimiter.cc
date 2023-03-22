@@ -6,7 +6,8 @@
 #include <thread>
 #include <unistd.h>
 
-#include <logger.hh>
+#include "utility/logger.hh"
+
 #include <xdl.h>
 
 #define __uintval(p) reinterpret_cast<intptr_t>(p)
@@ -74,6 +75,8 @@ namespace FPSLimiter {
                     ptr[1] = 0xFF;
                     ptr[2] = 0x2F;
                     ptr[3] = 0xE1;
+#elif defined(__i386__) || defined(__x86_64__)
+                    ptr[0] = 0xC3;
 #endif
                     code = __make_rx(ptr, 4);
                     if (code) {
