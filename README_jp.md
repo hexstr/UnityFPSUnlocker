@@ -8,7 +8,7 @@
 ## 使用方法
 UnityFPSUnlockerとZygiskの有効化を行ない、`TargetList.json`を`/data/local/tmp/`に配置をしてください。
 
-- `フレームレート`は`fps`の項目で設定をします。
+- `FPS値の変更`は`framerate`の項目で設定をします。
 - `ディレイ値 [5秒以上を推奨します]` `delay`で設定をした時間の経過後にFPSのアンロックが実行されます。
 - `normal_list` はゲームのパッケージ名を設定します(通常モードのアンロック)
 - `mod_list` はオペコードの改変モードになります。
