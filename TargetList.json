@@ -1,0 +1,13 @@
+{
+    "framerate": 90,
+    "delay": 20,
+    "normal_list": [
+        "com.nexon.bluearchive",
+        "com.sunborn.girlsfrontline.cn",
+        "com.miHoYo.Yuanshen"
+    ],
+    "mod_list": [
+        "com.aniplex.fategrandorder",
+        "com.bilibili.fatego"
+    ]
+}
