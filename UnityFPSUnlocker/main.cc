@@ -19,8 +19,7 @@
 
 using namespace rapidjson;
 
-static std::atomic<bool> is_loaded(false);
-static bool expected = false;
+static bool is_loaded = false;
 static int watch_descriptor = -1;
 static absl::flat_hash_map<std::string, ConfigValue> custom_list;
 static ConfigValue global_cfg;
@@ -87,7 +86,8 @@ void OnDeleted() {
 // In zygiskd memory.
 void CompanionEntry(int s) {
     std::string package_name = read_string(s);
-    if (is_loaded.compare_exchange_strong(expected, true)) {
+    if (is_loaded == false) {
+        is_loaded = true;
         file_watch_listener = new FileWatch::Listener();
         EPoller* file_watch_poller = new EPoller(file_watch_listener);
         EPoller::reserved_list_.push_back(file_watch_poller);

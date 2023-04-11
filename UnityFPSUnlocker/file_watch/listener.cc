@@ -52,8 +52,7 @@ namespace FileWatch {
                     LOGI("The file was created.");
                 }
                 else*/
-        if (event.mask & IN_DELETE) {
-            LOG("The file was deleted.");
+        if (event.mask & IN_DELETE_SELF) {
             if (auto itor = registered_.find(event.wd); itor != registered_.end()) {
                 auto del_callback = std::get<1>(itor->second);
                 if (del_callback != nullptr) {
@@ -73,9 +72,6 @@ namespace FileWatch {
                     mod_callback(event.wd);
                 }
             }
-        }
-        else if (event.mask & IN_DELETE_SELF) {
-            ERROR("File was deleted");
         }
     }
 } // namespace FileWatch
