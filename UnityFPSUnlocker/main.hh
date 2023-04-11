@@ -17,6 +17,7 @@ public:
 private:
     Api* api;
     JNIEnv* env;
+    int module_dir_fd_ = -1;
     int has_custom_cfg_ = false;
     int delay_ = 5;
     int framerate_ = 60;
@@ -24,6 +25,7 @@ private:
     const char* package_name_ = nullptr;
 
     void preSpecialize(const char* process);
+    void ForHoudini();
 };
 
 class ConfigValue {

@@ -1,4 +1,5 @@
 # UnityFPSUnlocker
+[README_JP](https://github.com/hexstr/UnityFPSUnlocker/blob/zygisk_module/README_jp.md)
 ## 安装需求
 - [Magisk](https://github.com/topjohnwu/Magisk/releases)
 - 启用`zygisk`
