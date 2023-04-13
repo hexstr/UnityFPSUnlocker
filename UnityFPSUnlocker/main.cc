@@ -1,11 +1,10 @@
 #include "main.hh"
 
-#include <cstring>
 #include <dlfcn.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <jni.h>
 
+#include <cstring>
 #include <thread>
 
 #include <absl/container/flat_hash_map.h>
@@ -15,6 +14,7 @@
 #include "file_watch/listener.hh"
 #include "fpslimiter.hh"
 #include "utility/config.hh"
+#include "utility/houdini.hh"
 #include "utility/socket.hh"
 
 using namespace rapidjson;
@@ -128,7 +128,15 @@ void MyModule::onLoad(Api* api, JNIEnv* env) {
 
 void MyModule::preAppSpecialize(AppSpecializeArgs* args) {
     package_name_ = env->GetStringUTFChars(args->nice_name, nullptr);
-    preSpecialize(package_name_);
+    int client_socket = api->connectCompanion();
+    write_string(client_socket, package_name_);
+
+    has_custom_cfg_ = read_int(client_socket);
+    delay_ = read_int(client_socket);
+    framerate_ = read_int(client_socket);
+    modify_opcode_ = read_int(client_socket);
+
+    close(client_socket);
 }
 
 void MyModule::ForHoudini() {
@@ -146,65 +154,39 @@ void MyModule::ForHoudini() {
 #define libdir "/lib/x86"
 #define library_name "armeabi-v7a.so"
 #endif
-        void* handle = dlopen(syslib "libnativebridge.so", RTLD_NOW);
-        void* art = dlopen(syslib "libart.so", RTLD_NOW);
-        // copy from https://github.com/frida/frida-core/blob/main/lib/agent/agent.vala
-        JavaVM* vms = nullptr;
-        if (!art) {
-            ERROR("Cannot open libart.so.");
-            return;
-        }
 
-        using JNIGetCreatedJavaVMs_t = int (*)(JavaVM * *vmBuf, jsize bufLen, jsize * nVMs);
-        static JNIGetCreatedJavaVMs_t JNIGetCreatedJavaVMsFunc = (JNIGetCreatedJavaVMs_t)dlsym(art, "JNI_GetCreatedJavaVMs");
-
-        if (!JNIGetCreatedJavaVMsFunc) {
-            ERROR("Cannot get vms");
-            return;
-        }
-
-        jsize numVMs;
-        if (JNIGetCreatedJavaVMsFunc(&vms, 1, &numVMs) != 0) {
-            ERROR("Cannot get vms");
+        auto vms = Utility::GetVM(syslib "libart.so");
+        if (!vms.ok()) {
+            ERROR("%s", vms.status().message().data());
             return;
         }
 
         JNIEnv* env = nullptr;
-        if (vms->AttachCurrentThread(&env, nullptr) < 0) {
+        if (vms.value()->AttachCurrentThread(&env, nullptr) < 0) {
             ERROR("Cannot connect to JNI environment");
             return;
         }
 
-        jobject app_info = Utility::GetApplicationInfo(env);
-        auto path = Utility::GetLibraryPath(env, app_info);
+        auto app_info = Utility::GetApplicationInfo(env);
+        auto path = Utility::GetLibraryPath(env, app_info.value());
 
-        if (path.empty()) {
+        if (!path.ok()) {
+            ERROR("%s", vms.status().message().data());
             return;
         }
 
-        if (path.find(libdir) == std::string::npos) {
-            using NativeBridgeLoadLibraryExt_t = void* (*)(const char*, int, int);
-            static NativeBridgeLoadLibraryExt_t NativeBridgeLoadLibraryExt = nullptr;
-            NativeBridgeLoadLibraryExt = (NativeBridgeLoadLibraryExt_t)dlsym(handle, "_ZN7android26NativeBridgeLoadLibraryExtEPKciPNS_25native_bridge_namespace_tE");
-
-            using NativeBridgeGetTrampoline_t = void* (*)(void* handle, const char* name, const char* shorty, uint32_t len);
-            static NativeBridgeGetTrampoline_t NativeBridgeGetTrampoline = nullptr;
-            NativeBridgeGetTrampoline = (NativeBridgeGetTrampoline_t)dlsym(handle, "_ZN7android25NativeBridgeGetTrampolineEPvPKcS2_j");
-
-            void* result = NativeBridgeLoadLibraryExt("/data/local/tmp/gh@hexstr/UnityFPSUnlocker/" library_name, RTLD_NOW, 3);
-            if (result) {
-                using JNIFunc = int (*)(void*, ConfigValue*);
-                JNIFunc jni_onload = (JNIFunc)NativeBridgeGetTrampoline(result, "JNI_OnLoad", nullptr, 0);
-                if (jni_onload) {
-                    ConfigValue config(0, framerate_, modify_opcode_);
-                    jni_onload(vms, &config);
-                }
-                else {
-                    ERROR("Load plugin failed.");
+        if (path.value().find(libdir) == std::string::npos) {
+            auto& houdini = Houdini::GetInstance();
+            auto plugin = houdini.LoadLibrary("/data/local/tmp/gh@hexstr/UnityFPSUnlocker/" library_name, RTLD_NOW);
+            if (plugin.ok()) {
+                ConfigValue config(0, framerate_, modify_opcode_);
+                if (auto result = houdini.CallJNI(plugin.value(), vms.value(), &config);
+                    !result.ok()) {
+                    ERROR("%s", plugin.status().message().data());
                 }
             }
             else {
-                ERROR("Load plugin failed.");
+                ERROR("%s", plugin.status().message().data());
             }
         }
         else {
@@ -226,18 +208,6 @@ void MyModule::postAppSpecialize(const AppSpecializeArgs* args) {
         ForHoudini();
     }
     env->ReleaseStringUTFChars(args->nice_name, package_name_);
-}
-
-void MyModule::preSpecialize(const char* process) {
-    int client_socket = api->connectCompanion();
-    write_string(client_socket, process);
-
-    has_custom_cfg_ = read_int(client_socket);
-    delay_ = read_int(client_socket);
-    framerate_ = read_int(client_socket);
-    modify_opcode_ = read_int(client_socket);
-
-    close(client_socket);
 }
 
 #if defined(__ARM_ARCH_7A__) || defined(__aarch64__)

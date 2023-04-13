@@ -24,7 +24,6 @@ private:
     bool modify_opcode_ = false;
     const char* package_name_ = nullptr;
 
-    void preSpecialize(const char* process);
     void ForHoudini();
 };
 
