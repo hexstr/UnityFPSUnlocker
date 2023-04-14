@@ -1,16 +1,18 @@
 #include "config.hh"
 
-#include <fstream>
+#include <absl/status/status.h>
+#include <dlfcn.h>
 #include <jni.h>
+
+#include <fstream>
 #include <string>
 
 #include "logger.hh"
 
-using absl::StatusOr;
 using namespace rapidjson;
 
 namespace Utility {
-    StatusOr<Document> LoadJsonFromFile(const char* FilePath) {
+    absl::StatusOr<Document> LoadJsonFromFile(const char* FilePath) {
         Document doc;
         std::ifstream file(FilePath);
         if (file.is_open()) {
@@ -53,7 +55,7 @@ namespace Utility {
         return nullptr;
     }
 
-    jobject GetApplicationInfo(JNIEnv* env) {
+    absl::StatusOr<jobject> GetApplicationInfo(JNIEnv* env) {
         jobject application = GetApplication(env);
         jclass application_clazz = env->GetObjectClass(application);
         jmethodID get_application_info = env->GetMethodID(
@@ -64,12 +66,14 @@ namespace Utility {
             return env->CallObjectMethod(application, get_application_info);
         }
         else {
-            ERROR("No method id getApplicationInfo");
-            return nullptr;
+            return absl::NotFoundError("No method id getApplicationInfo");
         }
     }
 
-    std::string GetLibraryPath(JNIEnv* env, jobject application_info) {
+    absl::StatusOr<std::string> GetLibraryPath(JNIEnv* env, jobject application_info) {
+        if (!application_info) {
+            return absl::NotFoundError("No method id");
+        }
         jfieldID native_library_dir_id = env->GetFieldID(
             env->GetObjectClass(application_info),
             "nativeLibraryDir",
@@ -83,8 +87,29 @@ namespace Utility {
             return package_name;
         }
         else {
-            ERROR("No nativeLibraryDir");
-            return {};
+            return absl::NotFoundError("No nativeLibraryDir");
         }
+    }
+
+    absl::StatusOr<JavaVM*> GetVM(const char* art_lib) {
+        // copy from https://github.com/frida/frida-core/blob/main/lib/agent/agent.vala
+        void* art = dlopen(art_lib, RTLD_NOW);
+        if (!art) {
+            return absl::InternalError("Cannot open libart.so.");
+        }
+
+        using JNIGetCreatedJavaVMs_t = int (*)(JavaVM * *vmBuf, jsize bufLen, jsize * nVMs);
+        static JNIGetCreatedJavaVMs_t JNIGetCreatedJavaVMsFunc = (JNIGetCreatedJavaVMs_t)dlsym(art, "JNI_GetCreatedJavaVMs");
+
+        if (!JNIGetCreatedJavaVMsFunc) {
+            return absl::NotFoundError("Cannot get symbol JNIGetCreatedJavaVMsFunc");
+        }
+
+        jsize numVMs;
+        JavaVM* vms = nullptr;
+        if (JNIGetCreatedJavaVMsFunc(&vms, 1, &numVMs) != 0) {
+            return absl::NotFoundError("Cannot get vms");
+        }
+        return vms;
     }
 } // namespace Utility

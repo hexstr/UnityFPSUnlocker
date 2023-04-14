@@ -12,8 +12,9 @@
 namespace Utility {
     absl::StatusOr<rapidjson::Document> LoadJsonFromFile(const char*);
     jobject GetApplication(JNIEnv* env);
-    jobject GetApplicationInfo(JNIEnv* env);
-    std::string GetLibraryPath(JNIEnv* env, jobject application_info);
+    absl::StatusOr<jobject> GetApplicationInfo(JNIEnv* env);
+    absl::StatusOr<std::string> GetLibraryPath(JNIEnv* env, jobject application_info);
+    absl::StatusOr<JavaVM*> GetVM(const char* art_lib);
 }; // namespace Utility
 
 #endif // config.hh
