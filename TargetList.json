@@ -1,0 +1,21 @@
+{
+  "global": {
+    "delay": 10,
+    "mod_opcode": true,
+    "fps": 120
+  },
+  "custom": {
+    "com.nexon.bluearchive": {
+      "fps": 90
+    },
+    "com.random.package.name.b": {
+      "mod_opcode": false
+    },
+    "com.random.package.name.c": {
+      "delay": 5
+    },
+    "com.random.package.name.d": {
+      "description": "keep blank to use global parameters (delete this line)."
+    }
+  }
+}
