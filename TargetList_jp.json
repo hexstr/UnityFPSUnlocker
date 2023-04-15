@@ -1,0 +1,42 @@
+{
+  "global": {
+    "delay": 10,
+    "mod_opcode": true,
+    "fps": 120
+  },
+  "custom": {
+    "com.nexon.bluearchive": {
+      "fps": 120
+    },
+    "com.YoStarJP.AzurLane": {
+      "mod_opcode": false
+    },
+    "com.YostarJP.BlueArchive": {
+      "mod_opcode": false
+    },
+    "com.sunborn.girlsfrontline.jp": {
+      "mod_opcode": false
+    },
+    "com.miHoYo.GenshinImpact": {
+      "mod_opcode": false
+    },
+    "co.grimoire.bxb": {
+      "mod_opcode": false
+    },
+    "jp.co.craftegg.band": {
+      "mod_opcode": false
+    },
+    "com.proximabeta.nikke": {
+      "mod_opcode": false
+    },
+    "com.random.package.name.b": {
+      "mod_opcode": false
+    },
+    "com.random.package.name.c": {
+      "fps": 120
+    },
+    "com.random.package.name.d": {
+      "記述": "グローバルパラメータを使用する場合は空白にします(この行は削除してください)"
+    }
+  }
+}
