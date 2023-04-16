@@ -2,6 +2,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <string_view>
+
 #include "utility/logger.hh"
 #include "utility/socket.hh"
 

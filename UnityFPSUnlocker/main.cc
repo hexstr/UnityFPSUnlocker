@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <jni.h>
 
+#include <chrono>
 #include <cstring>
 #include <thread>
 
@@ -142,7 +143,8 @@ void MyModule::preAppSpecialize(AppSpecializeArgs* args) {
 void MyModule::ForHoudini() {
 #if defined(__i386__) || defined(__x86_64__)
     std::thread([=]() {
-        sleep(delay_);
+        std::chrono::seconds sleep_duration(delay_);
+        std::this_thread::sleep_for(sleep_duration);
 #ifdef __x86_64__
 #define syslib "/system/lib64/"
 #define libdir "/lib/x86_64"

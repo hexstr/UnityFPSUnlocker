@@ -2,30 +2,12 @@
 
 #include <chrono>
 #include <string>
-#include <sys/mman.h>
 #include <thread>
-#include <unistd.h>
-
-#include "utility/logger.hh"
 
 #include <xdl.h>
 
-#define __uintval(p) reinterpret_cast<intptr_t>(p)
-#define __page_size 4096
-#define __page_align(n) __align_up(static_cast<intptr_t>(n), __page_size)
-#define __align_up(x, n) (((x) + ((n)-1)) & ~((n)-1))
-#define __align_down(x, n) ((x) & -(n))
-#define __ptr(p) reinterpret_cast<void*>(p)
-#define __ptr_align(x) __ptr(__align_down(reinterpret_cast<intptr_t>(x), __page_size))
-#define __make_rwx(p, n)                                                                                                     \
-    mprotect(__ptr_align(p),                                                                                                 \
-             __page_align(__uintval(p) + n) != __page_align(__uintval(p)) ? __page_align(n) + __page_size : __page_align(n), \
-             1 | 2 | 4);
-
-#define __make_rx(p, n)                                                                                                      \
-    mprotect(__ptr_align(p),                                                                                                 \
-             __page_align(__uintval(p) + n) != __page_align(__uintval(p)) ? __page_align(n) + __page_size : __page_align(n), \
-             1 | 4);
+#include "utility/config.hh"
+#include "utility/logger.hh"
 
 namespace FPSLimiter {
     static const char* il2cpp_resolve_icall_name{ "il2cpp_resolve_icall" };
@@ -45,9 +27,16 @@ namespace FPSLimiter {
         LOG("[UnityFPSUnlocker][x86_64] Starting...");
 #endif
         LOG("delay: %d | framerate: %d | modify_opcode: %d", delay, framerate, modify_opcode);
-        sleep(delay);
+        std::chrono::seconds sleep_duration(delay);
+        std::this_thread::sleep_for(sleep_duration);
         LOG("***** begin *****");
-        void* handle = xdl_open("libil2cpp.so", 0);
+        void* handle = nullptr;
+        for (int i = 0; i < 10; ++i) {
+            if ((handle = xdl_open("libil2cpp.so", 0))) {
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
         if (handle) {
             il2cpp_resolve_icall = (il2cpp_resolve_icall_f)xdl_sym(handle, il2cpp_resolve_icall_name, nullptr);
             if (!il2cpp_resolve_icall) {
@@ -60,7 +49,7 @@ namespace FPSLimiter {
 
                 if (modify_opcode) {
                     unsigned char* ptr = (unsigned char*)set_targetFrameRate;
-                    int code = __make_rwx(ptr, 4);
+                    int code = Utility::ChangeMemPermission(ptr, 4);
                     if (code) {
                         LOG("Change permission failed, %d %s", code, strerror(errno));
                         goto FAILED;
@@ -78,7 +67,7 @@ namespace FPSLimiter {
 #elif defined(__i386__) || defined(__x86_64__)
                     ptr[0] = 0xC3;
 #endif
-                    code = __make_rx(ptr, 4);
+                    code = Utility::ChangeMemPermission(ptr, 4);
                     if (code) {
                         LOG("Change permission failed, %d %s", code, strerror(errno));
                         goto FAILED;
@@ -91,6 +80,6 @@ namespace FPSLimiter {
             }
         }
     FAILED:
-        LOG("Failed, not support this game.");
+        LOG("Failed, libil2cpp.so not found.");
     }
 } // namespace FPSLimiter
