@@ -9,11 +9,13 @@
 #include <thread>
 
 #include <absl/container/flat_hash_map.h>
+#include <absl/status/status.h>
 #include <absl/status/statusor.h>
 
 #include "file_watch/dispatcher/epoller.hh"
 #include "file_watch/listener.hh"
 #include "fpslimiter.hh"
+#include "third/riru_hide/hide.hh"
 #include "utility/config.hh"
 #include "utility/houdini.hh"
 #include "utility/socket.hh"
@@ -27,13 +29,14 @@ static ConfigValue global_cfg;
 static FileWatch::Listener* file_watch_listener = nullptr;
 
 constexpr const char* ConfigFile = "/data/local/tmp/TargetList.json";
+constexpr const char* ErrorFile = "/data/local/tmp/gh@hexstr/error.log";
 
-void LoadConfig() {
+absl::Status LoadConfig() {
     custom_list.clear();
 
     auto read_path = Utility::LoadJsonFromFile(ConfigFile);
     if (!read_path.ok()) {
-        return;
+        return read_path.status();
     }
 
     Document& doc = *read_path;
@@ -72,11 +75,13 @@ void LoadConfig() {
     LOG("[LoadConfig] custom_list: %zu", custom_list.size());
     LOG("[LoadConfig] global_cfg: ");
     global_cfg.DebugPrint();
+
+    return absl::OkStatus();
 }
 
 void OnModified(int wd) {
     if (wd == watch_descriptor) {
-        LoadConfig();
+        LoadConfig().IgnoreError();
     }
 }
 
@@ -88,20 +93,24 @@ void OnDeleted() {
 void CompanionEntry(int s) {
     std::string package_name = read_string(s);
     if (is_loaded == false) {
-        is_loaded = true;
-        file_watch_listener = new FileWatch::Listener();
-        EPoller* file_watch_poller = new EPoller(file_watch_listener);
-        EPoller::reserved_list_.push_back(file_watch_poller);
-        std::thread([=] {
-            while (true) {
-                file_watch_poller->Poll();
-            }
-        }).detach();
-        watch_descriptor = file_watch_listener->Register(ConfigFile, OnModified, OnDeleted);
-        LoadConfig();
+        if (auto res = LoadConfig(); res.ok()) {
+            is_loaded = true;
+            file_watch_listener = new FileWatch::Listener();
+            EPoller* file_watch_poller = new EPoller(file_watch_listener);
+            EPoller::reserved_list_.push_back(file_watch_poller);
+            std::thread([=] {
+                while (true) {
+                    file_watch_poller->Poll();
+                }
+            }).detach();
+            watch_descriptor = file_watch_listener->Register(ConfigFile, OnModified, OnDeleted);
+        }
+        else {
+            ERROR("LoadConfig error: %s", res.message().data());
+        }
     }
 
-    if (watch_descriptor == -1) {
+    if (is_loaded && watch_descriptor == -1) {
         watch_descriptor = file_watch_listener->Register(ConfigFile, OnModified, OnDeleted);
     }
 
@@ -186,6 +195,7 @@ void MyModule::ForHoudini() {
                     !result.ok()) {
                     ERROR("%s", plugin.status().message().data());
                 }
+                riru_hide("/data/local/tmp/gh@hexstr/UnityFPSUnlocker/" library_name);
             }
             else {
                 ERROR("%s", plugin.status().message().data());

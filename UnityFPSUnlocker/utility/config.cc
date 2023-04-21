@@ -12,9 +12,9 @@
 using namespace rapidjson;
 
 namespace Utility {
-    absl::StatusOr<Document> LoadJsonFromFile(const char* FilePath) {
+    absl::StatusOr<Document> LoadJsonFromFile(const char* file_path) {
         Document doc;
-        std::ifstream file(FilePath);
+        std::ifstream file(file_path);
         if (file.is_open()) {
             std::string content((std::istreambuf_iterator<char>(file)),
                                 (std::istreambuf_iterator<char>()));
@@ -23,13 +23,13 @@ namespace Utility {
                     content[doc.GetErrorOffset() - 2] = '-';
                     content[doc.GetErrorOffset() - 1] = '>';
                 }
-                LOG("[%s] %s #%d\nFile: %s %s %zu %s", __FUNCTION__, __FILE__, __LINE__,
-                    FilePath, GetParseError_En(doc.GetParseError()), doc.GetErrorOffset(), content.c_str());
+                ERROR("[%s] %s #%d\nFile: %s %s %zu %s", __FUNCTION__, __FILE__, __LINE__,
+                      file_path, GetParseError_En(doc.GetParseError()), doc.GetErrorOffset(), content.c_str());
                 return absl::InternalError("Parse error");
             }
         }
         else {
-            LOG("[%s] %s #%d\nCould not read file: %s.", __FUNCTION__, __FILE__, __LINE__, FilePath);
+            ERROR("[%s] %s #%d\nCould not read file: %s. %s", __FUNCTION__, __FILE__, __LINE__, file_path, strerror(errno));
             return absl::InternalError("Could not read file.");
         }
         return doc;
