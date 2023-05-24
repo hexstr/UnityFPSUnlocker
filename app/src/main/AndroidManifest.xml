@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:label="UnityFPSUnlocker"
+        android:supportsRtl="true"
+        tools:targetApi="31">
+
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="为unity-il2cpp提供在手机上设置FPS的模块" />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="82" />
+
+    </application>
+
+</manifest>
