@@ -5,12 +5,14 @@
 #include <jni.h>
 
 #include <chrono>
-#include <cstring>
+#include <fstream>
 #include <thread>
 
 #include <absl/container/flat_hash_map.h>
 #include <absl/status/status.h>
 #include <absl/status/statusor.h>
+#include <absl/strings/str_split.h>
+#include <absl/strings/substitute.h>
 
 #include "file_watch/dispatcher/epoller.hh"
 #include "file_watch/listener.hh"
@@ -209,9 +211,8 @@ void MyModule::ForHoudini() {
 }
 
 void MyModule::postAppSpecialize(const AppSpecializeArgs* args) {
-    char buffer[PATH_MAX];
-    std::sprintf(buffer, "/sdcard/Android/data/%s/files/il2cpp", package_name_);
-    if (has_custom_cfg_ || access(buffer, F_OK) == 0) {
+    auto path = absl::Substitute("/sdcard/Android/data/$0/files/il2cpp", package_name_);
+    if (has_custom_cfg_ || access(path.c_str(), F_OK) == 0) {
 #if defined(__ARM_ARCH_7A__) || defined(__aarch64__)
         std::thread([=]() {
             FPSLimiter::Start(delay_, framerate_, modify_opcode_);
@@ -225,10 +226,38 @@ void MyModule::postAppSpecialize(const AppSpecializeArgs* args) {
 #if defined(__ARM_ARCH_7A__) || defined(__aarch64__)
 
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
-    ConfigValue* config = reinterpret_cast<ConfigValue*>(reserved);
-    int delay = config->delay_;
-    int fps = config->fps_;
-    int mod_opcode = config->mod_opcode_;
+    int delay = 5;
+    int fps = 90;
+    int mod_opcode = true;
+
+    if (reserved) {
+        ConfigValue* config = reinterpret_cast<ConfigValue*>(reserved);
+        delay = config->delay_;
+        fps = config->fps_;
+        mod_opcode = config->mod_opcode_;
+    }
+    else {
+        std::ifstream file("/proc/self/cmdline");
+        std::string cmdline;
+        std::getline(file, cmdline, '\0');
+        file.close();
+
+        LOG("cmdline: %s", cmdline.c_str());
+
+        auto path = absl::Substitute("/sdcard/Android/data/$0/files/config", cmdline);
+
+        std::ifstream config(path);
+        std::getline(config, cmdline, '\0');
+        config.close();
+
+        std::vector<std::string> v = absl::StrSplit(cmdline, '|');
+        if (v.size() == 3) {
+            delay = std::stoi(v[0]);
+            fps = std::stoi(v[1]);
+            mod_opcode = std::stoi(v[2]);
+        }
+    }
+
     std::thread([=]() {
         FPSLimiter::Start(delay, fps, mod_opcode);
     }).detach();
