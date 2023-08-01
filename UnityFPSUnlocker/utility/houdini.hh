@@ -15,6 +15,7 @@ class Houdini : public Singleton<Houdini> {
 public:
     absl::StatusOr<void*> LoadLibrary(const char* name, int flag);
     absl::Status CallJNI(void* handle, void* vm, void* reserved);
+    const char* GetError();
 
 private:
     Houdini();

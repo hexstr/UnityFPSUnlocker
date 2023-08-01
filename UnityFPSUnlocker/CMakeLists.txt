@@ -43,6 +43,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/libs/${ANDROID_ABI})
 aux_source_directory(${PROJECT_SOURCE_DIR}/${LibraryName} program-src)
 aux_source_directory(utility utility-src)
 aux_source_directory(third/xdl xdl-src)
+aux_source_directory(third/riru_hide riru_hide-src)
 aux_source_directory(file_watch listener-src)
 aux_source_directory(file_watch/dispatcher dispatcher-src)
 
@@ -54,6 +55,7 @@ add_library (
     ${listener-src}
     ${dispatcher-src}
     ${xdl-src}
+    ${riru_hide-src}
 )
 
 find_library(log-lib log)

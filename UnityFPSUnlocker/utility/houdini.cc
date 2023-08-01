@@ -47,6 +47,10 @@ Houdini::Houdini() {
             NativeBridgeLoadLibrary = (NativeBridgeLoadLibrary_t)dlsym(libnativebridge, "_ZN7android23NativeBridgeLoadLibraryEPKci");
             NativeBridgeLoadLibraryExt = (NativeBridgeLoadLibraryExt_t)dlsym(libnativebridge, "_ZN7android26NativeBridgeLoadLibraryExtEPKciPNS_25native_bridge_namespace_tE");
             NativeBridgeGetTrampoline = (NativeBridgeGetTrampoline_t)dlsym(libnativebridge, "_ZN7android25NativeBridgeGetTrampolineEPvPKcS2_j");
+
+            if (houdini_ver_ > 2) {
+                NativeBridgeGetError = (NativeBridgeGetError_t)dlsym(libnativebridge, "_ZN7android20NativeBridgeGetErrorEv");
+            }
         }
     }
 }
@@ -58,17 +62,17 @@ absl::StatusOr<void*> Houdini::LoadLibrary(const char* name, int flag) {
                 auto ptr = reinterpret_cast<android::NativeBridgeCallbacks700R36*>(houdini_itf_);
                 return ptr->loadLibrary(name, flag);
             }
-            else if (houdini_ver_ == 3) {
+            else {
                 auto ptr = reinterpret_cast<android::NativeBridgeCallbacksMaster*>(houdini_itf_);
-                return ptr->loadLibraryExt(name, flag, (void*)3);
+                return ptr->loadLibraryExt(name, flag, (void*)houdini_ver_);
             }
         }
         else {
             if (houdini_ver_ == 2) {
-                NativeBridgeLoadLibrary(name, flag);
+                return NativeBridgeLoadLibrary(name, flag);
             }
-            else if (houdini_ver_ == 3) {
-                NativeBridgeLoadLibraryExt(name, flag, (void*)3);
+            else {
+                return NativeBridgeLoadLibraryExt(name, flag, (void*)houdini_ver_);
             }
         }
     }
@@ -96,6 +100,19 @@ absl::Status Houdini::CallJNI(void* handle, void* vm, void* reserved) {
         }
     }
     return absl::InternalError("Houdini init error");
+}
+
+const char* Houdini::GetError() {
+    if (houdini_ver_ > 2) {
+        if (houdini_itf_) {
+            auto ptr = reinterpret_cast<android::NativeBridgeCallbacksMaster*>(houdini_itf_);
+            return ptr->getError();
+        }
+        else {
+            return NativeBridgeGetError();
+        }
+    }
+    return "(null)";
 }
 
 #endif // architecture defined

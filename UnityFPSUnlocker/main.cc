@@ -157,14 +157,14 @@ void MyModule::ForHoudini() {
         std::chrono::seconds sleep_duration(delay_);
         std::this_thread::sleep_for(sleep_duration);
 #ifdef __x86_64__
-#define syslib "/system/lib64/"
-#define libdir "/lib/x86_64"
+#define syslib       "/system/lib64/"
+#define libdir       "/lib/x86_64"
 #define library_name "arm64-v8a.so"
 #endif
 
 #ifdef __i386__
-#define syslib "/system/lib/"
-#define libdir "/lib/x86"
+#define syslib       "/system/lib/"
+#define libdir       "/lib/x86"
 #define library_name "armeabi-v7a.so"
 #endif
 
@@ -192,6 +192,10 @@ void MyModule::ForHoudini() {
             auto& houdini = Houdini::GetInstance();
             auto plugin = houdini.LoadLibrary("/data/local/tmp/gh@hexstr/UnityFPSUnlocker/" library_name, RTLD_NOW);
             if (plugin.ok()) {
+                if (plugin.value() == nullptr) {
+                    ERROR("Failed to load library : %s", Houdini::GetInstance().GetError());
+                    return;
+                }
                 ConfigValue config(0, framerate_, modify_opcode_);
                 if (auto result = houdini.CallJNI(plugin.value(), vms.value(), &config);
                     !result.ok()) {
@@ -255,6 +259,9 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
             delay = std::stoi(v[0]);
             fps = std::stoi(v[1]);
             mod_opcode = std::stoi(v[2]);
+        }
+        else {
+            ERROR("Invalid config file: expected 3, have %d", (int)v.size());
         }
     }
 
