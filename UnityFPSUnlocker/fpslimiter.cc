@@ -9,12 +9,21 @@
 #include "utility/config.hh"
 #include "utility/logger.hh"
 
+struct Resolution {
+    int32_t m_Width;
+    int32_t m_Height;
+    int32_t m_RefreshRate;
+};
+
 namespace FPSLimiter {
     static const char* il2cpp_resolve_icall_name{ "il2cpp_resolve_icall" };
     using il2cpp_resolve_icall_f = void* (*)(const char*);
     using set_targetFrameRate_f = void (*)(int);
     static il2cpp_resolve_icall_f il2cpp_resolve_icall = nullptr;
     static set_targetFrameRate_f set_targetFrameRate = nullptr;
+
+    using get_currentResolution_t = void (*)(Resolution*);
+    static get_currentResolution_t get_currentResolution = nullptr;
 
     void Start(int delay, int framerate, bool modify_opcode) {
 #ifdef __aarch64__
@@ -43,7 +52,7 @@ namespace FPSLimiter {
                 goto FAILED;
             }
 
-            set_targetFrameRate = (set_targetFrameRate_f)il2cpp_resolve_icall("UnityEngine.Application::set_targetFrameRate(System.Int32)");
+            set_targetFrameRate = (set_targetFrameRate_f)il2cpp_resolve_icall("UnityEngine.Application::set_targetFrameRate");
             if (set_targetFrameRate) {
                 set_targetFrameRate(framerate);
 
@@ -74,7 +83,18 @@ namespace FPSLimiter {
                     }
                 }
 
-                LOG("set_targetFrameRate: %d", framerate);
+                LOG("Set target framerate: %d", framerate);
+
+                get_currentResolution = (get_currentResolution_t)il2cpp_resolve_icall("UnityEngine.Screen::get_currentResolution_Injected");
+                if (get_currentResolution) {
+                    Resolution result;
+                    get_currentResolution(&result);
+                    LOG("Current resolution: %dx%d @%d", result.m_Width, result.m_Height, result.m_RefreshRate);
+                    if (framerate > result.m_RefreshRate) {
+                        ERROR("The screen refresh rate is lower than target framerate! %d < %d", result.m_RefreshRate, framerate);
+                    }
+                }
+
                 LOG("***** finished *****");
                 return;
             }
