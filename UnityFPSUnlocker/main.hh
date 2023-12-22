@@ -3,6 +3,7 @@
 
 #include "third/zygisk.hh"
 
+#include "utility/config.hh"
 #include "utility/logger.hh"
 
 using zygisk::Api;
@@ -19,31 +20,10 @@ private:
     JNIEnv* env;
     int module_dir_fd_ = -1;
     int has_custom_cfg_ = false;
-    int delay_ = 5;
-    int framerate_ = 90;
-    bool modify_opcode_ = false;
     const char* package_name_ = nullptr;
+    ConfigValue current_cfg_;
 
     void ForHoudini();
-};
-
-class ConfigValue {
-public:
-    int delay_ = 5;
-    int fps_ = 90;
-    bool mod_opcode_ = true;
-
-    ConfigValue(){};
-    ConfigValue(int delay, int fps, bool mod_opcode) : delay_(delay), fps_(fps), mod_opcode_(mod_opcode){};
-    ConfigValue(const ConfigValue& lhs) {
-        delay_ = lhs.delay_;
-        fps_ = lhs.fps_;
-        mod_opcode_ = lhs.mod_opcode_;
-    }
-
-    void DebugPrint() {
-        LOG("\tdelay: %d | fps: %d | mod_opcode: %d", delay_, fps_, mod_opcode_);
-    }
 };
 
 #endif // main.hh

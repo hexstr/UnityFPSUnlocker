@@ -41,6 +41,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/libs/${ANDROID_ABI})
 
 # 将源代码添加到此项目的可执行文件。
 aux_source_directory(${PROJECT_SOURCE_DIR}/${LibraryName} program-src)
+aux_source_directory(unity unity-src)
 aux_source_directory(utility utility-src)
 aux_source_directory(third/xdl xdl-src)
 aux_source_directory(third/riru_hide riru_hide-src)
@@ -51,6 +52,7 @@ add_library (
     ${LibraryName}
     SHARED
     ${program-src}
+    ${unity-src}
     ${utility-src}
     ${listener-src}
     ${dispatcher-src}

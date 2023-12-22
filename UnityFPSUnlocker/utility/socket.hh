@@ -23,3 +23,5 @@ void write_int_be(int fd, int val);
 std::string read_string(int fd);
 void read_string(int fd, std::string& str);
 void write_string(int fd, std::string_view str);
+float read_float(int fd);
+void write_float(int fd, float val);

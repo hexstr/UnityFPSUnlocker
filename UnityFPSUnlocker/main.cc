@@ -4,7 +4,6 @@
 #include <fcntl.h>
 #include <jni.h>
 
-#include <chrono>
 #include <fstream>
 #include <thread>
 
@@ -18,7 +17,6 @@
 #include "file_watch/listener.hh"
 #include "fpslimiter.hh"
 #include "third/riru_hide/hide.hh"
-#include "utility/config.hh"
 #include "utility/houdini.hh"
 #include "utility/socket.hh"
 
@@ -52,6 +50,9 @@ absl::Status LoadConfig() {
         if (auto itor2 = itor->value.FindMember("mod_opcode"); itor2 != doc.MemberEnd() && itor2->value.IsBool()) {
             global_cfg.mod_opcode_ = itor2->value.GetBool();
         }
+        if (auto itor2 = itor->value.FindMember("scale"); itor2 != doc.MemberEnd() && itor2->value.IsFloat()) {
+            global_cfg.scale_ = itor2->value.GetFloat();
+        }
     }
 
     if (auto itor = doc.FindMember("custom"); itor != doc.MemberEnd() && itor->value.IsObject()) {
@@ -67,6 +68,9 @@ absl::Status LoadConfig() {
                     }
                     if (auto itor2 = item.value.FindMember("mod_opcode"); itor2 != item.value.MemberEnd() && itor2->value.IsBool()) {
                         cfg.mod_opcode_ = itor2->value.GetBool();
+                    }
+                    if (auto itor2 = item.value.FindMember("scale"); itor2 != item.value.MemberEnd() && itor2->value.IsFloat()) {
+                        cfg.scale_ = itor2->value.GetFloat();
                     }
                 }
                 custom_list[item.name.GetString()] = cfg;
@@ -121,12 +125,14 @@ void CompanionEntry(int s) {
         write_int(s, itor->second.delay_);
         write_int(s, itor->second.fps_);
         write_int(s, itor->second.mod_opcode_);
+        write_float(s, itor->second.scale_);
     }
     else {
         write_int(s, 0);
         write_int(s, global_cfg.delay_);
         write_int(s, global_cfg.fps_);
         write_int(s, global_cfg.mod_opcode_);
+        write_float(s, global_cfg.scale_);
     }
 }
 
@@ -139,14 +145,16 @@ void MyModule::onLoad(Api* api, JNIEnv* env) {
 }
 
 void MyModule::preAppSpecialize(AppSpecializeArgs* args) {
-    package_name_ = env->GetStringUTFChars(args->nice_name, nullptr);
     int client_socket = api->connectCompanion();
+
+    package_name_ = env->GetStringUTFChars(args->nice_name, nullptr);
     write_string(client_socket, package_name_);
 
     has_custom_cfg_ = read_int(client_socket);
-    delay_ = read_int(client_socket);
-    framerate_ = read_int(client_socket);
-    modify_opcode_ = read_int(client_socket);
+    current_cfg_.delay_ = read_int(client_socket);
+    current_cfg_.fps_ = read_int(client_socket);
+    current_cfg_.mod_opcode_ = read_int(client_socket);
+    current_cfg_.scale_ = read_float(client_socket);
 
     close(client_socket);
 }
@@ -196,7 +204,7 @@ void MyModule::ForHoudini() {
                     ERROR("Failed to load library : %s", Houdini::GetInstance().GetError());
                     return;
                 }
-                ConfigValue config(0, framerate_, modify_opcode_);
+                ConfigValue config(0, current_cfg_.fps_, current_cfg_.mod_opcode_, current_cfg_.scale_);
                 if (auto result = houdini.CallJNI(plugin.value(), vms.value(), &config);
                     !result.ok()) {
                     ERROR("%s", plugin.status().message().data());
@@ -208,7 +216,7 @@ void MyModule::ForHoudini() {
             }
         }
         else {
-            FPSLimiter::Start(delay_, framerate_, modify_opcode_);
+            FPSLimiter::Start(current_cfg_);
         }
     }).detach();
 #endif
@@ -219,7 +227,7 @@ void MyModule::postAppSpecialize(const AppSpecializeArgs* args) {
     if (has_custom_cfg_ || access(path.c_str(), F_OK) == 0) {
 #if defined(__ARM_ARCH_7A__) || defined(__aarch64__)
         std::thread([=]() {
-            FPSLimiter::Start(delay_, framerate_, modify_opcode_);
+            FPSLimiter::Start(current_cfg_);
         }).detach();
 #endif
         ForHoudini();
@@ -230,15 +238,11 @@ void MyModule::postAppSpecialize(const AppSpecializeArgs* args) {
 #if defined(__ARM_ARCH_7A__) || defined(__aarch64__)
 
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
-    int delay = 5;
-    int fps = 90;
-    int mod_opcode = true;
+    ConfigValue current_cfg;
 
     if (reserved) {
         ConfigValue* config = reinterpret_cast<ConfigValue*>(reserved);
-        delay = config->delay_;
-        fps = config->fps_;
-        mod_opcode = config->mod_opcode_;
+        current_cfg = *config;
     }
     else {
         std::ifstream file("/proc/self/cmdline");
@@ -255,19 +259,24 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
         config.close();
 
         std::vector<std::string> v = absl::StrSplit(cmdline, '|');
-        if (v.size() == 3) {
-            delay = std::stoi(v[0]);
-            fps = std::stoi(v[1]);
-            mod_opcode = std::stoi(v[2]);
+        if (v.size() >= 3) {
+            current_cfg.delay_ = std::stoi(v[0]);
+            current_cfg.fps_ = std::stoi(v[1]);
+            current_cfg.mod_opcode_ = std::stoi(v[2]);
+
+            if (v.size() >= 4) {
+                current_cfg.scale_ = std::stof(v[3]);
+            }
         }
         else {
-            ERROR("Invalid config file: expected 3, have %d", (int)v.size());
+            ERROR("Invalid config file: expected at least 3 arguments, have %d", (int)v.size());
         }
     }
 
     std::thread([=]() {
-        FPSLimiter::Start(delay, fps, mod_opcode);
+        FPSLimiter::Start(current_cfg);
     }).detach();
+
     return JNI_VERSION_1_6;
 }
 

@@ -235,3 +235,16 @@ void write_string(int fd, string_view str) {
     write_int(fd, str.size());
     xwrite(fd, str.data(), str.size());
 }
+
+float read_float(int fd) {
+    float val;
+    if (xxread(fd, &val, sizeof(val)) != sizeof(val))
+        return -1;
+    return val;
+}
+
+void write_float(int fd, float val) {
+    if (fd < 0)
+        return;
+    xwrite(fd, &val, sizeof(val));
+}
