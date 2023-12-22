@@ -162,7 +162,7 @@ void MyModule::preAppSpecialize(AppSpecializeArgs* args) {
 void MyModule::ForHoudini() {
 #if defined(__i386__) || defined(__x86_64__)
     std::thread([=]() {
-        std::chrono::seconds sleep_duration(delay_);
+        std::chrono::seconds sleep_duration(current_cfg_.delay_);
         std::this_thread::sleep_for(sleep_duration);
 #ifdef __x86_64__
 #define syslib       "/system/lib64/"

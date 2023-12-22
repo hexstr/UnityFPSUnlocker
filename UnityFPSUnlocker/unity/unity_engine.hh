@@ -17,6 +17,7 @@ class Unity : public Singleton<Unity> {
 public:
     absl::Status Init(void*);
 
+    Resolution GetSystemExtImpl();
     Resolution GetResolution();
     void SetResolution(float);
     void SetFrameRate(int, bool);
@@ -26,11 +27,13 @@ private:
     using set_targetFrameRate_f = void (*)(int);
     using SetResolution_t = void (*)(int, int, int, int);
     using get_currentResolution_t = void (*)(Resolution*);
+    using GetSystemExtImpl_t = void (*)(void*, int*, int*);
 
     il2cpp_resolve_icall_f il2cpp_resolve_icall = nullptr;
     set_targetFrameRate_f set_targetFrameRate = nullptr;
-    SetResolution_t SetResolution_internal = nullptr;
+    SetResolution_t SetResolution_Internal = nullptr;
     get_currentResolution_t get_currentResolution = nullptr;
+    GetSystemExtImpl_t GetSystemExtImpl_Internal = nullptr;
 };
 
 #endif // unity_engine.hh
