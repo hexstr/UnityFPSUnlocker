@@ -14,7 +14,8 @@
   "global": {
     "delay": 10,
     "mod_opcode": true,
-    "fps": 90
+    "fps": 90,
+    "scale": 1.0
   },
   "custom": {
     "com.random.package.name.a": {
@@ -35,6 +36,7 @@
 - `fps` 需要设置的`fps`
 - `delay` 游戏载入后等待`delay`秒执行
 - `mod_opcode` 是否修改`opcode`，如果你发现游戏会重新锁定fps，可以把这项改为`true`，但由于修改内存，可能会被反作弊检测到
+- `scale` 设置分辨率的倍数，一般保持`1.0`即可，必须为小数。`当前屏幕宽度 * scale x 当前屏幕高度 * scale`
 
 然后，`custom`节点中的配置会覆盖`global`中的配置单独生效:
 
@@ -42,6 +44,7 @@
 - `fps` 同上
 - `mod_opcode` 同上
 - `delay` 同上
+- `scale` 同上
 
 `TargetList.json`修改后可以搜索`json 格式校验`校验是否完整。修改后立即生效（`>=1.8`）。  
 可以在终端模拟器输入`logcat -s UnityFPSUnlocker`查看输入日志。
@@ -60,3 +63,5 @@
 https://imgsli.com/MjI3NDQ2/0/1
 
 https://imgsli.com/MjI3NDQ2/2/3
+
+但是设置的时机需要尽可能早，也就是`delay`尽可能短，否则需要更改`绘图`选项中的任意一项后生效（比如开关一次`抗锯齿`）
