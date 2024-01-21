@@ -65,3 +65,11 @@ https://imgsli.com/MjI3NDQ2/0/1
 https://imgsli.com/MjI3NDQ2/2/3
 
 但是设置的时机需要尽可能早，也就是`delay`尽可能短，否则需要更改`绘图`选项中的任意一项后生效（比如开关一次`抗锯齿`）
+
+当然还有一个更简单的方法，修改`/sdcard/Android/data/com.nexon.bluearchive/files/DeviceOption`，把`Resolution`修改为大于`3`即可，这样会走`default`分支(在函数`GraphicsManager.CoSetScreenResolution()`中)
+
+- `0`: 1080P
+- `1`: 720P
+- `2`: 540P
+- `3`: 480P
+- `default` default
