@@ -1,0 +1,13 @@
+<resources>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <!-- Preference Titles -->
+    <string name="setting_header">Module Settings</string>
+
+    <!-- Messages Preferences -->
+    <string name="delay_title">delay</string>
+    <string name="fps_title">fps</string>
+    <string name="scale_title">scale</string>
+    <string name="debug_title">mod_opcode</string>
+
+</resources>

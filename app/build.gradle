@@ -3,13 +3,13 @@ plugins {
 }
 
 android {
-    namespace 'io.github.hexstr.unityfpsunlocker'
-    compileSdk 33
+    namespace 'io.github.hexstr.UnityFPSUnlocker'
+    compileSdk 34
 
     defaultConfig {
-        applicationId "io.github.hexstr.unityfpsunlocker"
+        applicationId namespace
         minSdk 28
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
     }
@@ -27,11 +27,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildFeatures {
+        viewBinding true
     }
 }
 
 dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.preference:preference:1.2.1'
     compileOnly("de.robv.android.xposed:api:82")
 }

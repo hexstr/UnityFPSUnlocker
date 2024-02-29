@@ -1,0 +1,29 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/setting_header">
+
+        <EditTextPreference
+            app:key="delay"
+            app:title="@string/delay_title"
+            android:inputType="number"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="fps"
+            app:title="@string/fps_title"
+            android:inputType="number"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="scale"
+            app:title="@string/scale_title"
+            android:inputType="numberDecimal"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:key="mod_opcode"
+            app:title="@string/debug_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
