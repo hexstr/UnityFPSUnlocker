@@ -237,46 +237,24 @@ void MyModule::postAppSpecialize(const AppSpecializeArgs* args) {
 
 #if defined(__ARM_ARCH_7A__) || defined(__aarch64__)
 
-JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
-    ConfigValue current_cfg;
-
-    if (reserved) {
-        ConfigValue* config = reinterpret_cast<ConfigValue*>(reserved);
-        current_cfg = *config;
-    }
-    else {
-        std::ifstream file("/proc/self/cmdline");
-        std::string cmdline;
-        std::getline(file, cmdline, '\0');
-        file.close();
-
-        LOG("cmdline: %s", cmdline.c_str());
-
-        auto path = absl::Substitute("/sdcard/Android/data/$0/files/config", cmdline);
-
-        std::ifstream config(path);
-        std::getline(config, cmdline, '\0');
-        config.close();
-
-        std::vector<std::string> v = absl::StrSplit(cmdline, '|');
-        if (v.size() >= 3) {
-            current_cfg.delay_ = std::stoi(v[0]);
-            current_cfg.fps_ = std::stoi(v[1]);
-            current_cfg.mod_opcode_ = std::stoi(v[2]);
-
-            if (v.size() >= 4) {
-                current_cfg.scale_ = std::stof(v[3]);
-            }
-        }
-        else {
-            ERROR("Invalid config file: expected at least 3 arguments, have %d", (int)v.size());
-        }
-    }
-
+extern "C" {
+JNIEXPORT void JNICALL Java_io_github_hexstr_UnityFPSUnlocker_MyModule_HelloWorld(JNIEnv* env, jobject obj, jint delay, jint fps, jint mod_opcode, jfloat scale) {
+    LOG("[UnityFPSUnlocker][xposed] delay: %d | fps: %d | mod_opcode: %d | scale: %f", delay, fps, mod_opcode, scale);
+    ConfigValue current_cfg(delay, fps, mod_opcode, scale);
     std::thread([=]() {
         FPSLimiter::Start(current_cfg);
     }).detach();
+}
+}
 
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    if (reserved) {
+        ConfigValue* config = reinterpret_cast<ConfigValue*>(reserved);
+
+        std::thread([=]() {
+            FPSLimiter::Start(*config);
+        }).detach();
+    }
     return JNI_VERSION_1_6;
 }
 
