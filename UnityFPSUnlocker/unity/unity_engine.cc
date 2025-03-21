@@ -8,6 +8,7 @@
 void Unity::Init(void* handle) {
     if ((il2cpp_resolve_icall = (il2cpp_resolve_icall_f)xdl_sym(handle, "il2cpp_resolve_icall", nullptr)) == nullptr) {
         ERROR("il2cpp_resolve_icall not found");
+        return;
     }
 
     if ((set_targetFrameRate = (set_targetFrameRate_f)il2cpp_resolve_icall("UnityEngine.Application::set_targetFrameRate")) == nullptr) {
