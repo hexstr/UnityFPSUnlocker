@@ -8,7 +8,8 @@
 - `Xposed`版本需要`LSPosed`
 
 ## Xposed模块
-一般`Xposed模块`不会随`magisk模块`一起更新，所以请在[releases](https://github.com/hexstr/UnityFPSUnlocker/releases)中往前翻，寻找`app-debug.apk`
+一般`Xposed模块`不会随`Magisk模块`一起更新，所以请在[releases](https://github.com/hexstr/UnityFPSUnlocker/releases)中往前翻，寻找`app-debug.apk`。  
+你可以提取最新的`zygisk_module.zip/zygisk/{对应架构}.so`替换掉`app-debug.apk/lib/{对应架构}/libUnityFPSUnlocker.so`，然后用mt管理器重新签名。
 
 ## 附加需求
 - 对目标游戏启用`Shamiko` (可以避免一些游戏对于`Zygisk`注入或`SafetyNet`的检测)
@@ -58,7 +59,7 @@
 可以在终端模拟器输入`logcat -s UnityFPSUnlocker`查看输入日志。
 
 ## 黑名单
-- 对于`Zygisk模块`，设置对应的`fps`为`0`即可，插件将不会生效
+- 对于`Magisk模块`，设置对应的`fps`为`0`即可，插件将不会生效
 - 对于`Xposed模块`，在`LSPosed`中取消勾选对应的应用即可，如果没有显示应用，可以点击右上角选择`隐藏->游戏`
 
 ## 分辨率
