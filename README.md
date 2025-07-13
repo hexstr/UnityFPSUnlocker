@@ -5,12 +5,16 @@
 ## 安装需求
 - 设备已安装 [Magisk](https://github.com/topjohnwu/Magisk/releases) / [KernelSU](https://github.com/tiann/KernelSU/releases) / [APatch](https://github.com/bmax121/APatch/releases)
 - 启用`Zygisk` (对于KernelSU / APatch用户 需要安装`Zygisk Next`)
+- `Xposed`版本需要`LSPosed`
+
+## Xposed模块
+一般`Xposed模块`不会随`magisk模块`一起更新，所以请在[releases](https://github.com/hexstr/UnityFPSUnlocker/releases)中往前翻，寻找`app-debug.apk`
 
 ## 附加需求
-- 对目标游戏启用`Shamiko` (Shamiko可以避免一些游戏对于Zygisk注入或SafetyNet的检测)
+- 对目标游戏启用`Shamiko` (可以避免一些游戏对于`Zygisk`注入或`SafetyNet`的检测)
 
 ## 使用
-若你的手机没有开启Zygisk，请先开启Zygisk后重启。当上述需求准备完毕后即可刷入`UnityFPSUnlocker`模块。在重启之前，先下载`TargetList.json`放入`/data/local/tmp/TargetList.json`，并修改你的配置。  
+若你的手机没有开启`Zygisk`，请先开启`Zygisk`后重启。当上述需求准备完毕后即可刷入`UnityFPSUnlocker`模块。在重启之前，先下载`TargetList.json`放入`/data/local/tmp/TargetList.json`，并修改你的配置。  
 模块会通过判断游戏数据目录是否存在`/sdcard/Android/data/{包名}/files/il2cpp`来自动加载。
 
 ```
@@ -52,6 +56,10 @@
 
 `TargetList.json`修改后可以搜索`json 格式校验`校验是否完整。修改后立即生效(`模块版本>=1.8`)。  
 可以在终端模拟器输入`logcat -s UnityFPSUnlocker`查看输入日志。
+
+## 黑名单
+- 对于`Zygisk模块`，设置对应的`fps`为`0`即可，插件将不会生效
+- 对于`Xposed模块`，在`LSPosed`中取消勾选对应的应用即可，如果没有显示应用，可以点击右上角选择`隐藏->游戏`
 
 ## 分辨率
 最近发现`BlueArchive`最高分辨率只有`1080P`，在模拟器上有肉眼可见的锯齿，而且在`16:10`的比例下甚至像素点比`16:9`更少
