@@ -1,13 +1,22 @@
 package io.github.hexstr.UnityFPSUnlocker;
 
+import android.app.Activity;
+import android.content.Context;
+import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
+
 import java.io.IOException;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
+import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public class MyModule implements IXposedHookLoadPackage {
+    private int display_mode_id = -1;
     private int delay = 5;
     private int fps = 90;
     private boolean mod_opcode = true;
@@ -25,16 +34,42 @@ public class MyModule implements IXposedHookLoadPackage {
         String package_name = lpparam.packageName;
         XSharedPreferences settings = getPref("fps_prefs");
         if (settings != null) {
+            display_mode_id = Integer.parseInt(settings.getString("display_mode_id", "-1"));
             delay = Integer.parseInt(settings.getString("delay", "5"));
             fps = Integer.parseInt(settings.getString("fps", "90"));
             mod_opcode = settings.getBoolean("mod_opcode", true);
             scale = Float.parseFloat(settings.getString("scale", "-1"));
 
+            display_mode_id = Integer.parseInt(settings.getString(package_name + "_per_app_display_mode_id", String.valueOf(display_mode_id)));
             delay = Integer.parseInt(settings.getString(package_name + "_per_app_delay", String.valueOf(delay)));
             fps = Integer.parseInt(settings.getString(package_name + "_per_app_fps", String.valueOf(fps)));
             mod_opcode = settings.getBoolean(package_name + "_per_app_mod_opcode", true);
             scale = Float.parseFloat(settings.getString(package_name + "_per_app_scale", String.valueOf(scale)));
         }
+
+        XposedHelpers.findAndHookConstructor(
+                "com.unity3d.player.UnityPlayer",
+                lpparam.classLoader,
+                Context.class,
+                XposedHelpers.findClass("com.unity3d.player.IUnityPlayerLifecycleEvents", lpparam.classLoader),
+                new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) {
+                        Object contextObj = param.args[0];
+                        if (contextObj instanceof Activity) {
+                            Activity activity = (Activity) contextObj;
+                            if (activity != null) {
+                                Window window = activity.getWindow();
+                                WindowManager.LayoutParams params = window.getAttributes();
+                                params.preferredDisplayModeId = display_mode_id;
+                                window.setAttributes(params);
+                            } else {
+                                XposedBridge.log("activity is null");
+                            }
+                        }
+                    }
+                }
+        );
 
         XposedBridge.log("delay: " + delay + " | fps: " + fps + " | mod_opcode: " + mod_opcode + " | scale: " + scale);
         System.loadLibrary("UnityFPSUnlocker");

@@ -11,5 +11,6 @@
     <string name="fps_title">fps</string>
     <string name="scale_title">scale</string>
     <string name="debug_title">mod_opcode</string>
+    <string name="display_mode_list">Display Mode List</string>
 
 </resources>

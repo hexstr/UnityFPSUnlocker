@@ -26,6 +26,11 @@
             app:title="@string/scale_title"
             app:useSimpleSummaryProvider="true" />
 
+        <ListPreference
+            app:key="display_mode_id"
+            app:title="@string/display_mode_list"
+            app:useSimpleSummaryProvider="true" />
+
         <SwitchPreferenceCompat
             app:key="mod_opcode"
             app:title="@string/debug_title" />
