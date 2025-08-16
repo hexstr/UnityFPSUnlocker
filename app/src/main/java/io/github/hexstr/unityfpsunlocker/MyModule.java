@@ -58,7 +58,7 @@ public class MyModule implements IXposedHookLoadPackage {
                         Object contextObj = param.args[0];
                         if (contextObj instanceof Activity) {
                             Activity activity = (Activity) contextObj;
-                            if (activity != null) {
+                            if (activity != null && display_mode_id != -1) {
                                 Window window = activity.getWindow();
                                 WindowManager.LayoutParams params = window.getAttributes();
                                 params.preferredDisplayModeId = display_mode_id;
@@ -71,7 +71,7 @@ public class MyModule implements IXposedHookLoadPackage {
                 }
         );
 
-        XposedBridge.log("delay: " + delay + " | fps: " + fps + " | mod_opcode: " + mod_opcode + " | scale: " + scale);
+        XposedBridge.log("display_mode_id: " + display_mode_id + " | delay: " + delay + " | fps: " + fps + " | mod_opcode: " + mod_opcode + " | scale: " + scale);
         System.loadLibrary("UnityFPSUnlocker");
         HelloWorld(delay, fps, mod_opcode, scale);
     }
