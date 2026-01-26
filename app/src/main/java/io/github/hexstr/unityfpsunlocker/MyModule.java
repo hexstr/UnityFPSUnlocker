@@ -45,6 +45,8 @@ public class MyModule implements IXposedHookLoadPackage {
             fps = Integer.parseInt(settings.getString(package_name + "_per_app_fps", String.valueOf(fps)));
             mod_opcode = settings.getBoolean(package_name + "_per_app_mod_opcode", true);
             scale = Float.parseFloat(settings.getString(package_name + "_per_app_scale", String.valueOf(scale)));
+        } else {
+            XposedBridge.log("Cannot read settings");
         }
 
         XposedHelpers.findAndHookConstructor(
@@ -63,9 +65,12 @@ public class MyModule implements IXposedHookLoadPackage {
                                 WindowManager.LayoutParams params = window.getAttributes();
                                 params.preferredDisplayModeId = display_mode_id;
                                 window.setAttributes(params);
+                                XposedBridge.log("Set display mode to " + display_mode_id);
                             } else {
-                                XposedBridge.log("activity is null");
+                                XposedBridge.log("activity is null.");
                             }
+                        } else {
+                            XposedBridge.log("contextObj is not activity.");
                         }
                     }
                 }

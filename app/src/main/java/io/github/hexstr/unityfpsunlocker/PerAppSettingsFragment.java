@@ -46,7 +46,7 @@ public class PerAppSettingsFragment extends PreferenceFragmentCompat {
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.per_app_preferences, rootKey);
 
-        ListPreference listPreference = findPreference("display_mode_id");
+        ListPreference listPreference = findPreference("per_app_display_mode_id");
 
         Display display = null;
 

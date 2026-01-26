@@ -25,6 +25,11 @@
             android:inputType="numberDecimal"
             app:useSimpleSummaryProvider="true" />
 
+        <ListPreference
+            app:key="per_app_display_mode_id"
+            app:title="@string/display_mode_list"
+            app:useSimpleSummaryProvider="true" />
+
         <SwitchPreferenceCompat
             app:key="per_app_mod_opcode"
             app:title="@string/debug_title" />
