@@ -6,13 +6,17 @@
 - 设备已安装 [Magisk](https://github.com/topjohnwu/Magisk/releases) / [KernelSU](https://github.com/tiann/KernelSU/releases) / [APatch](https://github.com/bmax121/APatch/releases)
 - 启用`Zygisk` (对于KernelSU / APatch用户 需要安装`Zygisk Next`)
 - `Xposed`版本需要`LSPosed`
+- `Xposed`模块和`Zygisk`模块二选一
 
 ## Xposed模块
 一般`Xposed模块`不会随`Magisk模块`一起更新，所以请在[releases](https://github.com/hexstr/UnityFPSUnlocker/releases)中往前翻，寻找`app-debug.apk`。  
 你可以提取最新的`zygisk_module.zip/zygisk/{对应架构}.so`替换掉`app-debug.apk/lib/{对应架构}/libUnityFPSUnlocker.so`，然后用mt管理器重新签名。
 
 ## 附加需求
-- 对目标游戏启用`Shamiko` (可以避免一些游戏对于`Zygisk`注入或`SafetyNet`的检测)
+- 对存在检测的游戏，比如`libtprt.so`，可以试试保持SELinux严格模式`setenforce 1`
+
+## 其它
+- 对存在检测的游戏，如果发生闪退，请不要提交issue
 
 ## 使用
 若你的手机没有开启`Zygisk`，请先开启`Zygisk`后重启。当上述需求准备完毕后即可刷入`UnityFPSUnlocker`模块。在重启之前，先下载`TargetList.json`放入`/data/local/tmp/TargetList.json`，并修改你的配置。  
@@ -77,8 +81,6 @@ https://imgsli.com/MjI3NDQ2/0/1
 
 https://imgsli.com/MjI3NDQ2/2/3
 
-但是设置的时机需要尽可能早，也就是`delay`尽可能短，否则需要更改`绘图`选项中的任意一项后生效（比如开关一次`抗锯齿`）
-
 如果你不需要超分辨率，可以修改`/sdcard/Android/data/com.nexon.bluearchive/files/DeviceOption`，把`Resolution`修改为大于`3`即可，这样会走`default`分支(在函数`GraphicsManager.CoSetScreenResolution()`中)
 
 - `0`: 1080P
@@ -86,3 +88,4 @@ https://imgsli.com/MjI3NDQ2/2/3
 - `2`: 540P
 - `3`: 480P
 - `default` default
+
