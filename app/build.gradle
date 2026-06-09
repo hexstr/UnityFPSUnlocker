@@ -3,15 +3,15 @@ plugins {
 }
 
 android {
-    namespace 'io.github.hexstr.UnityFPSUnlocker'
-    compileSdk 36
+    namespace = 'io.github.hexstr.UnityFPSUnlocker'
+    compileSdk = 36
 
     defaultConfig {
-        applicationId namespace
-        minSdk 28
-        targetSdk 36
-        versionCode 1
-        versionName "1.0"
+        applicationId = namespace
+        minSdk = 28
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
     }
 
     sourceSets {
@@ -31,7 +31,8 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     buildFeatures {
-        viewBinding true
+        buildConfig = true
+        viewBinding = true
     }
 }
 

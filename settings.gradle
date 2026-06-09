@@ -11,10 +11,10 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven {
-            url 'https://api.xposed.info'
+            url = uri('https://api.xposed.info')
         }
 
-        maven { url 'https://jitpack.io' }
+        maven { url = uri('https://jitpack.io') }
     }
 }
 rootProject.name = "UnityFPSUnlocker"
