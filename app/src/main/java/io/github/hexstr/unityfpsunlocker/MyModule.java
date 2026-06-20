@@ -76,32 +76,59 @@ public class MyModule implements IXposedHookLoadPackage {
             XposedBridge.log("Cannot read settings");
         }
 
-        XposedHelpers.findAndHookConstructor(
-                "com.unity3d.player.UnityPlayer",
-                lpparam.classLoader,
-                Context.class,
-                XposedHelpers.findClass("com.unity3d.player.IUnityPlayerLifecycleEvents", lpparam.classLoader),
-                new XC_MethodHook() {
-                    @Override
-                    protected void afterHookedMethod(MethodHookParam param) {
-                        Object contextObj = param.args[0];
-                        if (contextObj instanceof Activity) {
-                            Activity activity = (Activity) contextObj;
-                            if (activity != null && display_mode_id != -1) {
-                                Window window = activity.getWindow();
-                                WindowManager.LayoutParams params = window.getAttributes();
-                                params.preferredDisplayModeId = display_mode_id;
-                                window.setAttributes(params);
-                                XposedBridge.log("Set display mode to " + display_mode_id);
-                            } else {
-                                XposedBridge.log("activity is null.");
-                            }
-                        } else {
-                            XposedBridge.log("contextObj is not activity.");
-                        }
+        try {
+            Class<?> unityPlayerClass = XposedHelpers.findClass("com.unity3d.player.UnityPlayer", lpparam.classLoader);
+            Class<?> lifecycleEventsClass = XposedHelpers.findClass("com.unity3d.player.IUnityPlayerLifecycleEvents", lpparam.classLoader);
+
+            boolean isHooked = false;
+            java.lang.reflect.Constructor<?>[] constructors = unityPlayerClass.getDeclaredConstructors();
+
+            for (java.lang.reflect.Constructor<?> constructor : constructors) {
+                Class<?>[] parameterTypes = constructor.getParameterTypes();
+                boolean match = false;
+
+                for (Class<?> paramType : parameterTypes) {
+                    if (paramType.equals(lifecycleEventsClass)) {
+                        match = true;
+                        break;
                     }
                 }
-        );
+
+                if (match) {
+                    XposedBridge.hookMethod(constructor, new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                            Activity activity = null;
+                            for (Object arg : param.args) {
+                                if (arg instanceof Activity) {
+                                    activity = (Activity) arg;
+                                    break;
+                                }
+                            }
+
+                            if (activity != null) {
+                                if (display_mode_id != -1) {
+                                    Window window = activity.getWindow();
+                                    WindowManager.LayoutParams params = window.getAttributes();
+                                    params.preferredDisplayModeId = display_mode_id;
+                                    window.setAttributes(params);
+                                    XposedBridge.log("Set display mode to " + display_mode_id);
+                                }
+                            } else {
+                                XposedBridge.log("No activity instance found in arguments.");
+                            }
+                        }
+                    });
+                    isHooked = true;
+                }
+            }
+
+            if (!isHooked) {
+                XposedBridge.log("No target constructors found.");
+            }
+        } catch (Throwable t) {
+            XposedBridge.log(t);
+        }
 
         XposedBridge.log("display_mode_id: " + display_mode_id + " | delay: " + delay + " | fps: " + fps + " | mod_opcode: " + mod_opcode + " | scale: " + scale);
         System.loadLibrary("UnityFPSUnlocker");
