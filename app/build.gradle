@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = 'io.github.hexstr.UnityFPSUnlocker'
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = namespace
@@ -16,7 +16,13 @@ android {
 
     sourceSets {
         main {
-            jniLibs.srcDirs = ['src/main/libs']
+            jniLibs.srcDirs = ['src/main/lib']
+        }
+    }
+
+    packaging {
+        resources {
+            merges += ['META-INF/xposed/*']
         }
     }
 
@@ -41,5 +47,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation 'androidx.preference:preference:1.2.1'
-    compileOnly("de.robv.android.xposed:api:82")
+    compileOnly 'io.github.libxposed:api:102.0.0'
+    implementation 'io.github.libxposed:service:102.0.0'
 }

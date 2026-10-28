@@ -23,7 +23,7 @@ final class SharedPreferenceCopier {
         editor.apply();
     }
 
-    private static void copyValue(
+    static void copyValue(
             SharedPreferences.Editor editor,
             String key,
             Object value) {

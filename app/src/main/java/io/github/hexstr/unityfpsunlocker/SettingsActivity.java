@@ -8,6 +8,7 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Prefs.init(this);
         setContentView(R.layout.settings_activity);
         SettingsInsets.apply(findViewById(R.id.settings));
 

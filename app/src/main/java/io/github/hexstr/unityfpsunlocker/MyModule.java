@@ -1,137 +1,175 @@
 package io.github.hexstr.UnityFPSUnlocker;
 
 import android.app.Activity;
-import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 
-import de.robv.android.xposed.IXposedHookLoadPackage;
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XSharedPreferences;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import androidx.annotation.NonNull;
 
-public class MyModule implements IXposedHookLoadPackage {
-    private int display_mode_id = -1;
-    private int delay = 5;
-    private int fps = 90;
-    private boolean mod_opcode = true;
-    private float scale = -1;
+import java.lang.reflect.Constructor;
 
-    private static XSharedPreferences getPref(String path) {
-        XSharedPreferences pref = new XSharedPreferences(BuildConfig.APPLICATION_ID, path);
-        return pref.getFile().canRead() ? pref : null;
-    }
+import io.github.libxposed.api.XposedModule;
 
-    private static int getIntPref(XSharedPreferences settings, String key, int fallback) {
-        return parseInt(settings.getString(key, String.valueOf(fallback)), fallback);
-    }
+public class MyModule extends XposedModule {
+    private static final String tag_ = "UnityFPSUnlocker";
 
-    private static float getFloatPref(XSharedPreferences settings, String key, float fallback) {
-        return parseFloat(settings.getString(key, String.valueOf(fallback)), fallback);
-    }
-
-    private static int parseInt(String value, int fallback) {
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            XposedBridge.log("Invalid integer preference value: " + value);
-            return fallback;
-        }
-    }
-
-    private static float parseFloat(String value, float fallback) {
-        try {
-            return Float.parseFloat(value);
-        } catch (NumberFormatException e) {
-            XposedBridge.log("Invalid float preference value: " + value);
-            return fallback;
-        }
-    }
+    private int display_mode_id_ = -1;
+    private int delay_ = 5;
+    private int fps_ = 90;
+    private boolean mod_opcode_ = true;
+    private float scale_ = -1.0f;
 
     public static native void HelloWorld(int delay, int fps, boolean mod_opcode, float scale);
 
     @Override
-    public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) {
-        String package_name = lpparam.packageName;
-        XSharedPreferences settings = getPref("fps_prefs");
-        if (settings != null) {
-            display_mode_id = getIntPref(settings, "display_mode_id", -1);
-            delay = getIntPref(settings, "delay", 5);
-            fps = getIntPref(settings, "fps", 90);
-            mod_opcode = settings.getBoolean("mod_opcode", true);
-            scale = getFloatPref(settings, "scale", -1);
+    public void onPackageReady(@NonNull PackageReadyParam param) {
+        String package_name = param.getPackageName();
+        ClassLoader class_loader = param.getClassLoader();
 
-            display_mode_id = getIntPref(
+        Class<?> unity_player_class;
+        Class<?> lifecycle_events_class;
+        try {
+            unity_player_class = Class.forName("com.unity3d.player.UnityPlayer", false, class_loader);
+            lifecycle_events_class = Class.forName("com.unity3d.player.IUnityPlayerLifecycleEvents", false, class_loader);
+        } catch (ClassNotFoundException ignored) {
+            // Target Unity classes not found in this process; detach to avoid further overhead.
+            detach();
+            return;
+        }
+
+        SharedPreferences settings = null;
+        try {
+            settings = getRemotePreferences(Prefs.prefs_name_);
+        } catch (Throwable t) {
+            log(Log.WARN, tag_, "Cannot read remote preferences", t);
+        }
+
+        if (settings != null) {
+            display_mode_id_ = getIntPref(settings, "display_mode_id", -1);
+            delay_ = getIntPref(settings, "delay", 5);
+            fps_ = getIntPref(settings, "fps", 90);
+            mod_opcode_ = getBooleanPref(settings, "mod_opcode", true);
+            scale_ = getFloatPref(settings, "scale", -1.0f);
+
+            display_mode_id_ = getIntPref(
                     settings,
                     package_name + "_per_app_display_mode_id",
-                    display_mode_id);
-            delay = getIntPref(settings, package_name + "_per_app_delay", delay);
-            fps = getIntPref(settings, package_name + "_per_app_fps", fps);
-            mod_opcode = settings.getBoolean(package_name + "_per_app_mod_opcode", mod_opcode);
-            scale = getFloatPref(settings, package_name + "_per_app_scale", scale);
+                    display_mode_id_);
+            delay_ = getIntPref(settings, package_name + "_per_app_delay", delay_);
+            fps_ = getIntPref(settings, package_name + "_per_app_fps", fps_);
+            mod_opcode_ = getBooleanPref(settings, package_name + "_per_app_mod_opcode", mod_opcode_);
+            scale_ = getFloatPref(settings, package_name + "_per_app_scale", scale_);
         } else {
-            XposedBridge.log("Cannot read settings");
+            log(Log.WARN, tag_, "Cannot read settings, using default values");
         }
 
+        boolean is_hooked = false;
+        Constructor<?>[] constructors = unity_player_class.getDeclaredConstructors();
+
+        for (Constructor<?> constructor : constructors) {
+            Class<?>[] parameter_types = constructor.getParameterTypes();
+            boolean match = false;
+
+            for (Class<?> param_type : parameter_types) {
+                if (param_type.equals(lifecycle_events_class)) {
+                    match = true;
+                    break;
+                }
+            }
+
+            if (match) {
+                final int target_display_mode_id = display_mode_id_;
+                try {
+                    hook(constructor)
+                            .setId("unity_player_constructor")
+                            .intercept(chain -> {
+                                Object result = chain.proceed();
+                                Activity activity = null;
+                                for (Object arg : chain.getArgs()) {
+                                    if (arg instanceof Activity) {
+                                        activity = (Activity) arg;
+                                        break;
+                                    }
+                                }
+
+                                if (activity != null) {
+                                    if (target_display_mode_id != -1) {
+                                        Window window = activity.getWindow();
+                                        WindowManager.LayoutParams params = window.getAttributes();
+                                        params.preferredDisplayModeId = target_display_mode_id;
+                                        window.setAttributes(params);
+                                        log(Log.INFO, tag_, "Set display mode to " + target_display_mode_id);
+                                    }
+                                } else {
+                                    log(Log.WARN, tag_, "No activity instance found in arguments.");
+                                }
+                                return result;
+                            });
+                    is_hooked = true;
+                } catch (Throwable t) {
+                    log(Log.ERROR, tag_, "Failed to hook constructor", t);
+                }
+            }
+        }
+
+        if (!is_hooked) {
+            log(Log.WARN, tag_, "No target constructors found.");
+        }
+
+        log(Log.INFO, tag_, "display_mode_id: " + display_mode_id_ + " | delay: " + delay_ + " | fps: " + fps_ + " | mod_opcode: " + mod_opcode_ + " | scale: " + scale_);
         try {
-            Class<?> unityPlayerClass = XposedHelpers.findClass("com.unity3d.player.UnityPlayer", lpparam.classLoader);
-            Class<?> lifecycleEventsClass = XposedHelpers.findClass("com.unity3d.player.IUnityPlayerLifecycleEvents", lpparam.classLoader);
-
-            boolean isHooked = false;
-            java.lang.reflect.Constructor<?>[] constructors = unityPlayerClass.getDeclaredConstructors();
-
-            for (java.lang.reflect.Constructor<?> constructor : constructors) {
-                Class<?>[] parameterTypes = constructor.getParameterTypes();
-                boolean match = false;
-
-                for (Class<?> paramType : parameterTypes) {
-                    if (paramType.equals(lifecycleEventsClass)) {
-                        match = true;
-                        break;
-                    }
-                }
-
-                if (match) {
-                    XposedBridge.hookMethod(constructor, new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            Activity activity = null;
-                            for (Object arg : param.args) {
-                                if (arg instanceof Activity) {
-                                    activity = (Activity) arg;
-                                    break;
-                                }
-                            }
-
-                            if (activity != null) {
-                                if (display_mode_id != -1) {
-                                    Window window = activity.getWindow();
-                                    WindowManager.LayoutParams params = window.getAttributes();
-                                    params.preferredDisplayModeId = display_mode_id;
-                                    window.setAttributes(params);
-                                    XposedBridge.log("Set display mode to " + display_mode_id);
-                                }
-                            } else {
-                                XposedBridge.log("No activity instance found in arguments.");
-                            }
-                        }
-                    });
-                    isHooked = true;
-                }
-            }
-
-            if (!isHooked) {
-                XposedBridge.log("No target constructors found.");
-            }
+            System.loadLibrary("UnityFPSUnlocker");
+            HelloWorld(delay_, fps_, mod_opcode_, scale_);
         } catch (Throwable t) {
-            XposedBridge.log(t);
+            log(Log.ERROR, tag_, "Failed to load UnityFPSUnlocker native library", t);
         }
+    }
 
-        XposedBridge.log("display_mode_id: " + display_mode_id + " | delay: " + delay + " | fps: " + fps + " | mod_opcode: " + mod_opcode + " | scale: " + scale);
-        System.loadLibrary("UnityFPSUnlocker");
-        HelloWorld(delay, fps, mod_opcode, scale);
+    @Override
+    public boolean onHotReloading(@NonNull HotReloadingParam param) {
+        // Module loads native library; dynamic reload across generations is not supported.
+        return false;
+    }
+
+    private static int getIntPref(SharedPreferences settings, String key, int fallback) {
+        Object val = settings.getAll().get(key);
+        if (val instanceof Integer) {
+            return (Integer) val;
+        } else if (val instanceof String) {
+            try {
+                return Integer.parseInt((String) val);
+            } catch (NumberFormatException ignored) {
+            }
+        } else if (val instanceof Number) {
+            return ((Number) val).intValue();
+        }
+        return fallback;
+    }
+
+    private static float getFloatPref(SharedPreferences settings, String key, float fallback) {
+        Object val = settings.getAll().get(key);
+        if (val instanceof Float) {
+            return (Float) val;
+        } else if (val instanceof String) {
+            try {
+                return Float.parseFloat((String) val);
+            } catch (NumberFormatException ignored) {
+            }
+        } else if (val instanceof Number) {
+            return ((Number) val).floatValue();
+        }
+        return fallback;
+    }
+
+    private static boolean getBooleanPref(SharedPreferences settings, String key, boolean fallback) {
+        Object val = settings.getAll().get(key);
+        if (val instanceof Boolean) {
+            return (Boolean) val;
+        } else if (val instanceof String) {
+            return Boolean.parseBoolean((String) val);
+        }
+        return fallback;
     }
 }

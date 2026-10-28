@@ -12,5 +12,6 @@
     <string name="scale_title">scale</string>
     <string name="debug_title">mod_opcode</string>
     <string name="display_mode_list">Display Mode List</string>
+    <string name="xposed_description">为unity-il2cpp提供在手机上设置FPS的模块</string>
 
 </resources>

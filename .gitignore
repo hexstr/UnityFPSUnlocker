@@ -14,5 +14,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+lib
 libs
 release

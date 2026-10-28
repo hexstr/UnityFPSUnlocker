@@ -4,8 +4,11 @@
 
     <application
         android:label="UnityFPSUnlocker"
+        android:description="@string/xposed_description"
         android:theme="@style/Theme.AppCompat"
         android:supportsRtl="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         tools:targetApi="28">
 
         <activity
@@ -22,19 +25,6 @@
             android:exported="true">
         </activity>
 
-
-        <meta-data
-            android:name="xposedmodule"
-            android:value="true" />
-        <meta-data
-            android:name="xposedsharedprefs"
-            android:value="true" />
-        <meta-data
-            android:name="xposeddescription"
-            android:value="为unity-il2cpp提供在手机上设置FPS的模块" />
-        <meta-data
-            android:name="xposedminversion"
-            android:value="93" />
     </application>
 
 </manifest>

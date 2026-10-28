@@ -7,27 +7,26 @@ import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
 
 public class PerAppSettingsFragment extends PreferenceFragmentCompat {
-    private final SharedPreferences.OnSharedPreferenceChangeListener listener =
-            (sharedPreferences, key) -> {
-                String packageName = sharedPreferences.getString("package_name", "");
-                if (packageName.isEmpty()) {
+    private final SharedPreferences.OnSharedPreferenceChangeListener listener_ =
+            (shared_preferences, key) -> {
+                String package_name = shared_preferences.getString("package_name", "");
+                if (package_name.isEmpty()) {
                     return;
                 }
 
                 SharedPreferences destination_preferences = Prefs.getSharedPrefs(requireContext());
                 SharedPreferenceCopier.copyAll(
-                        sharedPreferences,
+                        shared_preferences,
                         destination_preferences,
-                        packageName + "_");
+                        package_name + "_");
             };
-
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.per_app_preferences, rootKey);
 
-        ListPreference listPreference = findPreference("per_app_display_mode_id");
-        DisplayModePreferenceHelper.populate(requireActivity(), listPreference);
+        ListPreference list_preference = findPreference("per_app_display_mode_id");
+        DisplayModePreferenceHelper.populate(requireActivity(), list_preference);
     }
 
     @Override
@@ -35,7 +34,7 @@ public class PerAppSettingsFragment extends PreferenceFragmentCompat {
         super.onResume();
         SharedPreferences preferences = getPreferenceManager().getSharedPreferences();
         if (preferences != null) {
-            preferences.registerOnSharedPreferenceChangeListener(listener);
+            preferences.registerOnSharedPreferenceChangeListener(listener_);
         }
     }
 
@@ -44,7 +43,7 @@ public class PerAppSettingsFragment extends PreferenceFragmentCompat {
         super.onPause();
         SharedPreferences preferences = getPreferenceManager().getSharedPreferences();
         if (preferences != null) {
-            preferences.unregisterOnSharedPreferenceChangeListener(listener);
+            preferences.unregisterOnSharedPreferenceChangeListener(listener_);
         }
     }
 }
